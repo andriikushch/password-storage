@@ -9,11 +9,11 @@ import (
 	"crypto/sha256"
 	"os"
 	"bufio"
-	"reflect"
 	"golang.org/x/crypto/ssh/terminal"
 	"syscall"
 	"errors"
 	"flag"
+	"strings"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	key := sha256.Sum256([]byte(masterPassword))
 
 	command := flag.String("command", "add-new-credentials", "a string")
-
+	flag.Parse()
 
 	switch *command {
 	case "add-new-credentials":
@@ -39,7 +39,7 @@ func addNewCredentials(key []byte) error {
 	fmt.Print("Enter account name: ")
 	fmt.Scanln(&account)
 
-	fmt.Print("\nEnter password: ")
+	fmt.Print("Enter password: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		fmt.Printf("%v", err)
@@ -87,25 +87,9 @@ func loadDBAndDecryptAllPassword(key []byte) error {
 
 	for _,element := range lines {
 		line := decrypt(key, []byte(element))
+		accountPasswordPair := strings.Split(string(line), "\x01")
 
-		var passwordFromFile []byte
-
-		var toRecord bool = false
-		for _,element := range line {
-			if element == 0 {
-				toRecord = false
-			}
-
-			if element == 1 {
-				toRecord = true
-			}
-
-			if toRecord == true {
-				passwordFromFile = append(passwordFromFile, element)
-			}
-		}
-
-		if reflect.DeepEqual(passwordFromFile, []byte(account)) {
+		if accountPasswordPair[0] == account {
 			fmt.Println("Password found")
 		}
 	}
@@ -138,7 +122,10 @@ func encrypt(key []byte, password string) []byte {
 	return  ciphertext
 }
 
-func decrypt(key []byte, ciphertext []byte) []byte {
+func decrypt(key []byte, encryptedpassword []byte) []byte {
+
+	ciphertext := encryptedpassword
+
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
