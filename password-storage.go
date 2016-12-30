@@ -13,72 +13,77 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"syscall"
 	"errors"
+	"flag"
 )
 
 func main() {
-	masterPassword := "example key 1234"
+ 	masterPassword := "example key 1234"
 	key := sha256.Sum256([]byte(masterPassword))
-	var command string
 
-	fmt.Print("Enter command: ")
-	fmt.Scanln(&command)
+	command := flag.String("command", "add-new-credentials", "a string")
 
-	for {
-		switch command {
-		case "add-new-credentials":
-			addNewCredentials(key[:])
-		case "load-password":
-			loadDBAndDecryptAllPassword(key[:])
+
+	switch *command {
+	case "add-new-credentials":
+		if err := addNewCredentials(key[:]); err != nil {
+			fmt.Errorf("%v", err)
 		}
+	case "load-password":
+		loadDBAndDecryptAllPassword(key[:])
 	}
 }
 
 func addNewCredentials(key []byte) error {
 	var account string
-	var password string
-	var passwordConfirmation string
 
 	fmt.Print("Enter account name: ")
 	fmt.Scanln(&account)
 
-	fmt.Print("Enter password: ")
+	fmt.Print("\nEnter password: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
+		fmt.Printf("%v", err)
 		return errors.New("Can't read password")
 	}
-	password = string(bytePassword)
+	password := string(bytePassword)
 
-	fmt.Print("Enter password confirmation: ")
+	fmt.Print("\nEnter password confirmation: ")
 	bytePasswordConfirmation, err := terminal.ReadPassword(int(syscall.Stdin))
 
 	if err != nil {
 		return errors.New("Can't read password confiramtion")
 	}
-	passwordConfirmation = string(bytePasswordConfirmation)
+	passwordConfirmation := string(bytePasswordConfirmation)
 
 	if password == passwordConfirmation {
-		encryptedCredentials := encrypt(key, account + "\x01" + password)
-		storeAccountPasswordPair(encryptedCredentials)
+		return storeAccountPasswordPair(encrypt(key, account + "\x01" + password))
 	}
+
+	return errors.New("Password and Password confirmation is not equal")
 }
 
-func storeAccountPasswordPair(encryptedCredentials []byte)  {
+func storeAccountPasswordPair(encryptedCredentials []byte) error {
 	f, err := os.OpenFile("dat2", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
 
 	defer f.Close()
 
-	_, err = f.Write(encryptedCredentials)
-	check(err)
+	if _, err = f.Write(encryptedCredentials); err != nil {
+		return errors.New("Can't write credentials")
+	}
 
-	f.Sync()
+	return f.Sync()
 }
 
-func loadDBAndDecryptAllPassword(key []byte) {
+func loadDBAndDecryptAllPassword(key []byte) error {
 	var account string
 	fmt.Print("Enter account name: ")
 	fmt.Scanln(&account)
 
-	lines, _ := readLines("dat2")
+	lines, err := readLines("dat2")
+
+	if err != nil {
+		return errors.New("Error while reading")
+	}
 
 	for _,element := range lines {
 		line := decrypt(key, []byte(element))
@@ -87,16 +92,16 @@ func loadDBAndDecryptAllPassword(key []byte) {
 
 		var toRecord bool = false
 		for _,element := range line {
-			if (element == 0) {
+			if element == 0 {
 				toRecord = false
 			}
 
-			if (toRecord == true) {
-				passwordFromFile = append(passwordFromFile, element)
+			if element == 1 {
+				toRecord = true
 			}
 
-			if (element == 1) {
-				toRecord = true
+			if toRecord == true {
+				passwordFromFile = append(passwordFromFile, element)
 			}
 		}
 
@@ -104,6 +109,8 @@ func loadDBAndDecryptAllPassword(key []byte) {
 			fmt.Println("Password found")
 		}
 	}
+
+	return nil
 }
 
 func encrypt(key []byte, password string) []byte {
@@ -151,12 +158,6 @@ func decrypt(key []byte, ciphertext []byte) []byte {
 	mode.CryptBlocks(ciphertext, ciphertext)
 
 	return ciphertext
-}
-
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
 }
 
 func readLines(path string) ([]string, error) {
