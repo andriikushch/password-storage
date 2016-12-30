@@ -10,11 +10,14 @@ import (
 	"os"
 	"bufio"
 	"reflect"
+	"golang.org/x/crypto/ssh/terminal"
+	"syscall"
+	"errors"
 )
 
 func main() {
 	masterPassword := "example key 1234"
-	key := sha256.Sum256([]byte(masterPassword))[:]
+	key := sha256.Sum256([]byte(masterPassword))
 	var command string
 
 	fmt.Print("Enter command: ")
@@ -23,14 +26,14 @@ func main() {
 	for {
 		switch command {
 		case "add-new-credentials":
-			addNewCredentials(key)
+			addNewCredentials(key[:])
 		case "load-password":
-			loadDBAndDecryptAllPassword(key)
+			loadDBAndDecryptAllPassword(key[:])
 		}
 	}
 }
 
-func addNewCredentials(key []byte)  {
+func addNewCredentials(key []byte) error {
 	var account string
 	var password string
 	var passwordConfirmation string
@@ -39,10 +42,19 @@ func addNewCredentials(key []byte)  {
 	fmt.Scanln(&account)
 
 	fmt.Print("Enter password: ")
-	fmt.Scanln(&password)
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		return errors.New("Can't read password")
+	}
+	password = string(bytePassword)
 
 	fmt.Print("Enter password confirmation: ")
-	fmt.Scanln(&passwordConfirmation)
+	bytePasswordConfirmation, err := terminal.ReadPassword(int(syscall.Stdin))
+
+	if err != nil {
+		return errors.New("Can't read password confiramtion")
+	}
+	passwordConfirmation = string(bytePasswordConfirmation)
 
 	if password == passwordConfirmation {
 		encryptedCredentials := encrypt(key, account + "\x01" + password)
@@ -119,10 +131,7 @@ func encrypt(key []byte, password string) []byte {
 	return  ciphertext
 }
 
-func decrypt(key []byte, encryptedpassword []byte) []byte {
-
-	ciphertext := encryptedpassword
-
+func decrypt(key []byte, ciphertext []byte) []byte {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
