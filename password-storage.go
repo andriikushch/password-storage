@@ -51,7 +51,7 @@ func addNewCredentials(key []byte)  {
 }
 
 func storeAccountPasswordPair(encryptedCredentials []byte)  {
-	f, err := os.OpenFile("dat2", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660);
+	f, err := os.OpenFile("dat2", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
 
 	defer f.Close()
 
