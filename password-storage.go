@@ -13,8 +13,8 @@ import (
 )
 
 func main() {
-	plainKey := "example key 1234"
-	key := sha256.Sum256([]byte(plainKey))
+	masterPassword := "example key 1234"
+	key := sha256.Sum256([]byte(masterPassword))[:]
 	var command string
 
 	fmt.Print("Enter command: ")
@@ -22,10 +22,10 @@ func main() {
 
 	for {
 		switch command {
-		case "add-new-creadentials":
-			addNewCredentials(key[:])
+		case "add-new-credentials":
+			addNewCredentials(key)
 		case "load-password":
-			loadDBAndDecryptAllPassword(key[:])
+			loadDBAndDecryptAllPassword(key)
 		}
 	}
 }
