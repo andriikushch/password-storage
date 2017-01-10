@@ -39,11 +39,11 @@ func FindPassword(key []byte, account string) (string, error) {
 	return "", errors.New("Can't find password for account")
 }
 
-func isPassowordExist(key []byte, account string) (bool, error) {
+func isPasswordExist(key []byte, account string) bool {
 	lines, err := readLines(databaseFile)
 
 	if err != nil {
-		return false, errors.New("Error while reading")
+		return false
 	}
 
 	for _, element := range lines {
@@ -51,11 +51,11 @@ func isPassowordExist(key []byte, account string) (bool, error) {
 		accountPasswordPair := strings.Split(line, PASSWORD_ACCOUNT_NAME_SEPARATOR)
 
 		if accountPasswordPair[0] == account {
-			return true, nil
+			return true
 		}
 	}
 
-	return false, nil
+	return false
 }
 
 
@@ -75,7 +75,7 @@ func ShowAccountsList(key []byte) error {
 	return nil
 }
 
-func UpdateAccountPasswordPair(encryptedCredentials []byte) error {
+func updateAccountPasswordPair(encryptedCredentials []byte) error {
 	data, err := ioutil.ReadFile(databaseFile)
 	if err != nil {
 		panic(err)
@@ -120,7 +120,11 @@ func AddNewCredentials(key []byte) error {
 	passwordConfirmation := string(bytePasswordConfirmation)
 
 	if password == passwordConfirmation {
-		return storeAccountPasswordPair(crypt.Encrypt(key, account + PASSWORD_ACCOUNT_NAME_SEPARATOR + password))
+		if isPasswordExist(key, account) {
+			return updateAccountPasswordPair(crypt.Encrypt(key, account + PASSWORD_ACCOUNT_NAME_SEPARATOR + password))
+		} else {
+			return storeAccountPasswordPair(crypt.Encrypt(key, account + PASSWORD_ACCOUNT_NAME_SEPARATOR + password))
+		}
 	}
 
 	return errors.New("Password and Password confirmation is not equal")
