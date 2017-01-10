@@ -1,4 +1,4 @@
-package main
+package crypt
 
 import (
 	"testing"
@@ -19,8 +19,8 @@ func TestEncryptDecrypt(t *testing.T) {
 	passwords := []string {p1, p2, p3, p4, p5, p6}
 
 	for _, p := range passwords {
-		c := encrypt(key[:], p)
-		d := string(decrypt(key[:], c))
+		c := Encrypt(key[:], p)
+		d := string(Decrypt(key[:], c))
 		if d != p {
 			fmt.Printf("%v \n %v \n", []byte(d), []byte(p))
 			fmt.Printf("%s \n", d + " != " + p)
