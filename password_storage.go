@@ -17,7 +17,13 @@ import (
 	"github.com/andriikushch/clipboard"
 )
 
-var masterPassword  = "example key 1234"
+const PASSWORD_ACCOUNT_NAME_SEPARATOR = "\x01"
+const PADDING = "\x00"
+
+var (
+	masterPassword = "example key 1234"
+	databaseFile = "dat2"
+)
 
 func main() {
 	key := sha256.Sum256([]byte(masterPassword))
@@ -58,14 +64,14 @@ func addNewCredentials(key []byte) error {
 	passwordConfirmation := string(bytePasswordConfirmation)
 
 	if password == passwordConfirmation {
-		return storeAccountPasswordPair(encrypt(key, account + "\x01" + password))
+		return storeAccountPasswordPair(encrypt(key, account + PASSWORD_ACCOUNT_NAME_SEPARATOR + password))
 	}
 
 	return errors.New("Password and Password confirmation is not equal")
 }
 
 func storeAccountPasswordPair(encryptedCredentials []byte) error {
-	f, err := os.OpenFile("dat2", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
+	f, err := os.OpenFile(databaseFile, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
 
 	defer f.Close()
 
@@ -81,7 +87,7 @@ func loadDBAndDecryptAllPassword(key []byte) error {
 	fmt.Print("Enter account name: ")
 	fmt.Scanln(&account)
 
-	lines, err := readLines("dat2")
+	lines, err := readLines(databaseFile)
 
 	if err != nil {
 		return errors.New("Error while reading")
@@ -89,7 +95,7 @@ func loadDBAndDecryptAllPassword(key []byte) error {
 
 	for _,element := range lines {
 		line := decrypt(key, []byte(element))
-		accountPasswordPair := strings.Split(line, "\x01")
+		accountPasswordPair := strings.Split(line, PASSWORD_ACCOUNT_NAME_SEPARATOR)
 
 		if accountPasswordPair[0] == account {
 			fmt.Println("Password found")
@@ -103,7 +109,7 @@ func loadDBAndDecryptAllPassword(key []byte) error {
 func encrypt(key []byte, password string) []byte {
 
 	for len(password) % aes.BlockSize != 0 {
-		password = password + "\x00"
+		password = password + PADDING
 	}
 
 	plaintext := []byte(password)
@@ -147,7 +153,7 @@ func decrypt(key []byte, encryptedpassword []byte) string {
 	mode := cipher.NewCBCDecrypter(block, iv)
 	mode.CryptBlocks(ciphertext, ciphertext)
 
-	return strings.TrimRight(string(ciphertext), "\x00")
+	return strings.TrimRight(string(ciphertext), PADDING)
 }
 
 func readLines(path string) ([]string, error) {
