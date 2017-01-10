@@ -1,101 +1,64 @@
 package repository
 
 import (
-	"github.com/andriikushch/password-storage/crypt"
-	"strings"
+	"encoding/gob"
+	"errors"
 	"fmt"
 	"os"
-	"bufio"
-	"io/ioutil"
-	"regexp"
-	"errors"
 	"syscall"
+
+	"github.com/andriikushch/password-storage/crypt"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-const PASSWORD_ACCOUNT_NAME_SEPARATOR = "\x01"
-
 var (
-	databaseFile          = "dat2"
+	databaseFile = "dat2"
+	db           = make(map[string][]byte)
 )
 
 func FindPassword(key []byte, account string) (string, error) {
-	lines, err := readLines(databaseFile)
-
+	// Open a RO file
+	decodeFile, err := os.Open(databaseFile)
 	if err != nil {
-		return "", errors.New("Error while reading")
+		panic(err)
+	}
+	defer decodeFile.Close()
+
+	// Create a decoder
+	decoder := gob.NewDecoder(decodeFile)
+
+	// Decode -- We need to pass a pointer otherwise accounts2 isn't modified
+	decoder.Decode(&db)
+
+	password, ok := db[account]
+
+	if !ok {
+		return "", errors.New("Can't find password for account")
 	}
 
-	for _, element := range lines {
-		line := crypt.Decrypt(key, []byte(element))
-		accountPasswordPair := strings.Split(line, PASSWORD_ACCOUNT_NAME_SEPARATOR)
-
-		if accountPasswordPair[0] == account {
-			fmt.Println("Password found")
-			return accountPasswordPair[1], nil
-		}
-	}
-
-	return "", errors.New("Can't find password for account")
+	return crypt.Decrypt(key, password), nil
 }
-
-func isPasswordExist(key []byte, account string) bool {
-	lines, err := readLines(databaseFile)
-
-	if err != nil {
-		return false
-	}
-
-	for _, element := range lines {
-		line := crypt.Decrypt(key, []byte(element))
-		accountPasswordPair := strings.Split(line, PASSWORD_ACCOUNT_NAME_SEPARATOR)
-
-		if accountPasswordPair[0] == account {
-			return true
-		}
-	}
-
-	return false
-}
-
 
 func ShowAccountsList(key []byte) error {
-	lines, err := readLines(databaseFile)
-
+	// Open a RO file
+	decodeFile, err := os.Open(databaseFile)
 	if err != nil {
-		return errors.New("Error while reading")
+		panic(err)
 	}
+	defer decodeFile.Close()
 
-	for _, element := range lines {
-		line := crypt.Decrypt(key, []byte(element))
-		accountPasswordPair := strings.Split(line, PASSWORD_ACCOUNT_NAME_SEPARATOR)
-		fmt.Println(accountPasswordPair[0])
+	// Create a decoder
+	decoder := gob.NewDecoder(decodeFile)
+
+	// Decode -- We need to pass a pointer otherwise accounts2 isn't modified
+	decoder.Decode(&db)
+
+	for acc := range db {
+		fmt.Printf("%s\n", acc)
 	}
 
 	return nil
 }
-
-func updateAccountPasswordPair(encryptedCredentials []byte) error {
-	data, err := ioutil.ReadFile(databaseFile)
-	if err != nil {
-		panic(err)
-	}
-	input := string(data)
-	re := regexp.MustCompile(`^` + string(encryptedCredentials) + `\r?\n`)
-	input = re.ReplaceAllString(input, "")
-
-	f, err := os.OpenFile(databaseFile, os.O_RDWR|os.O_TRUNC, 0660)
-
-	defer f.Close()
-
-	stringToWrite := string(encryptedCredentials) + "\n"
-	if _, err = f.WriteString(stringToWrite); err != nil {
-		return errors.New("Can't write credentials")
-	}
-
-	return f.Sync()
-}
-
 
 func AddNewCredentials(key []byte) error {
 	var account string
@@ -120,40 +83,35 @@ func AddNewCredentials(key []byte) error {
 	passwordConfirmation := string(bytePasswordConfirmation)
 
 	if password == passwordConfirmation {
-		if isPasswordExist(key, account) {
-			return updateAccountPasswordPair(crypt.Encrypt(key, account + PASSWORD_ACCOUNT_NAME_SEPARATOR + password))
-		} else {
-			return storeAccountPasswordPair(crypt.Encrypt(key, account + PASSWORD_ACCOUNT_NAME_SEPARATOR + password))
-		}
+		return storeAccountPasswordPair(key, account, password)
 	}
 
 	return errors.New("Password and Password confirmation is not equal")
 }
 
-func readLines(path string) ([]string, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+func storeAccountPasswordPair(key []byte, account string, password string) error {
+	//////////
+	// First lets encode some data
+	//////////
+	db[account] = crypt.Encrypt(key, password)
+	encodeFile := new(os.File)
 
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	return lines, scanner.Err()
-}
+	// Create a file for IO
+	if _, err := os.Stat(databaseFile); os.IsNotExist(err) {
+		encodeFile, err = os.Create(databaseFile)
 
-func storeAccountPasswordPair(encryptedCredentials []byte) error {
-	f, err := os.OpenFile(databaseFile, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0660)
-
-	defer f.Close()
-
-	stringToWrite := string(encryptedCredentials) + "\n"
-	if _, err = f.WriteString(stringToWrite); err != nil {
-		return errors.New("Can't write credentials")
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	return f.Sync()
+	// Since this is a binary format large parts of it will be unreadable
+	encoder := gob.NewEncoder(encodeFile)
+
+	// Write to the file
+	if err := encoder.Encode(db); err != nil {
+		panic(err)
+	}
+
+	return encodeFile.Close()
 }
