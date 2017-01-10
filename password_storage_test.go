@@ -14,8 +14,9 @@ func TestEncryptDecrypt(t *testing.T) {
 	p3 := "123sad123@#!@# ADSASDA"
 	p4 := "123sad123@#!@# ADSASDA___((()))"
 	p5 := "t5plil"
+	p6 := "a"
 
-	passwords := []string {p1, p2, p3, p4, p5}
+	passwords := []string {p1, p2, p3, p4, p5, p6}
 
 	for _, p := range passwords {
 		c := encrypt(key[:], p)

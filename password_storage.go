@@ -37,7 +37,12 @@ func main() {
 			fmt.Errorf("%v", err)
 		}
 	case "load-password":
-		loadDBAndDecryptAllPassword(key[:])
+		var account string
+		fmt.Print("Enter account name: ")
+		fmt.Scanln(&account)
+		loadDBAndDecryptPassword(key[:], account)
+	case "accounts":
+		showAccountsList(key[:])
 	}
 }
 
@@ -82,11 +87,7 @@ func storeAccountPasswordPair(encryptedCredentials []byte) error {
 	return f.Sync()
 }
 
-func loadDBAndDecryptAllPassword(key []byte) error {
-	var account string
-	fmt.Print("Enter account name: ")
-	fmt.Scanln(&account)
-
+func loadDBAndDecryptPassword(key []byte, account string) error {
 	lines, err := readLines(databaseFile)
 
 	if err != nil {
@@ -101,6 +102,22 @@ func loadDBAndDecryptAllPassword(key []byte) error {
 			fmt.Println("Password found")
 			clipboard.WriteAll(accountPasswordPair[1])
 		}
+	}
+
+	return errors.New("Can't find password for account")
+}
+
+func showAccountsList(key []byte) error {
+	lines, err := readLines(databaseFile)
+
+	if err != nil {
+		return errors.New("Error while reading")
+	}
+
+	for _,element := range lines {
+		line := decrypt(key, []byte(element))
+		accountPasswordPair := strings.Split(line, PASSWORD_ACCOUNT_NAME_SEPARATOR)
+		fmt.Println(accountPasswordPair[0])
 	}
 
 	return nil
