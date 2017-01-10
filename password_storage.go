@@ -14,10 +14,12 @@ import (
 	"errors"
 	"flag"
 	"strings"
+	"github.com/andriikushch/clipboard"
 )
 
+var masterPassword  = "example key 1234"
+
 func main() {
- 	masterPassword := "example key 1234"
 	key := sha256.Sum256([]byte(masterPassword))
 
 	command := flag.String("command", "add-new-credentials", "a string")
@@ -87,10 +89,11 @@ func loadDBAndDecryptAllPassword(key []byte) error {
 
 	for _,element := range lines {
 		line := decrypt(key, []byte(element))
-		accountPasswordPair := strings.Split(string(line), "\x01")
+		accountPasswordPair := strings.Split(line, "\x01")
 
 		if accountPasswordPair[0] == account {
 			fmt.Println("Password found")
+			clipboard.WriteAll(accountPasswordPair[1])
 		}
 	}
 
@@ -122,7 +125,7 @@ func encrypt(key []byte, password string) []byte {
 	return  ciphertext
 }
 
-func decrypt(key []byte, encryptedpassword []byte) []byte {
+func decrypt(key []byte, encryptedpassword []byte) string {
 
 	ciphertext := encryptedpassword
 
@@ -144,7 +147,7 @@ func decrypt(key []byte, encryptedpassword []byte) []byte {
 	mode := cipher.NewCBCDecrypter(block, iv)
 	mode.CryptBlocks(ciphertext, ciphertext)
 
-	return ciphertext
+	return strings.TrimRight(string(ciphertext), "\x00")
 }
 
 func readLines(path string) ([]string, error) {
