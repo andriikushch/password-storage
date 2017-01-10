@@ -80,7 +80,8 @@ func storeAccountPasswordPair(encryptedCredentials []byte) error {
 
 	defer f.Close()
 
-	if _, err = f.Write(encryptedCredentials); err != nil {
+	stringToWrite := string(encryptedCredentials) + "\n"
+	if _, err = f.WriteString(stringToWrite); err != nil {
 		return errors.New("Can't write credentials")
 	}
 
