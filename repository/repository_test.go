@@ -31,6 +31,10 @@ func TestAddNewCredentials(t *testing.T) {
 	for i, _ := range passwords {
 		AddNewCredentials(key[:], []byte(passwords[i]), []byte(passwords[i]), accounts[i])
 	}
+	//to found bug with duplication in map
+	for i, _ := range passwords {
+		AddNewCredentials(key[:], []byte(passwords[i]), []byte(passwords[i]), accounts[i])
+	}
 
 	list, err := getAccountsList(key[:])
 
@@ -46,8 +50,16 @@ func TestAddNewCredentials(t *testing.T) {
 			}
 
 			if j == len(accounts) {
+				fmt.Print("Credentials in not stored")
 				t.FailNow()
 			}
 		}
 	}
+
+	if len(accounts) != len(list) {
+		fmt.Print("Accounts duplicated")
+		t.FailNow()
+	}
+
+
 }

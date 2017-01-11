@@ -28,3 +28,14 @@ func TestEncryptDecrypt(t *testing.T) {
 		}
 	}
 }
+
+func TestEncrypt(t *testing.T) {
+	masterPassword := "test123"
+	key := sha256.Sum256([]byte(masterPassword))
+	text := "facebook"
+
+	if string(Encrypt(key[:], text)) == string(Encrypt(key[:], text)) {
+		fmt.Printf("%v", "encrypted text is equal")
+		t.FailNow()
+	}
+}

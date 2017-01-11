@@ -82,6 +82,19 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 	loadDB()
 
 	encryptedAccount := crypt.Encrypt(key, account)
+
+	for acc := range db {
+		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
+		if err != nil {
+			return err
+		}
+
+		if account == crypt.Decrypt(key, encryptedAccount) {
+			delete(db, acc)
+		}
+	}
+
+
 	db[base64.StdEncoding.EncodeToString(encryptedAccount)] = crypt.Encrypt(key, password)
 	encodeFile := new(os.File)
 
