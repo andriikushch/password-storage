@@ -15,13 +15,17 @@ var (
 )
 
 func main() {
+	var l,a,g bool
 	key := sha256.Sum256([]byte(masterPassword))
 
-	command := flag.String("command", "add-new-credentials", "a string")
+	flag.BoolVar(&l, "l", false, "")
+	flag.BoolVar(&a, "a", false, "")
+	flag.BoolVar(&g, "g", false, "")
+
 	flag.Parse()
 
-	switch *command {
-	case "add-new-credentials":
+	switch true {
+	case a:
 		var account string
 		fmt.Print("Enter account name: ")
 		fmt.Scanln(&account)
@@ -32,7 +36,7 @@ func main() {
 			fmt.Printf("%v", err)
 		}
 
-		fmt.Print("\nEnter password confirmation: ")
+		fmt.Print("\nEnter password confirmation: \n")
 		bytePasswordConfirmation, err := terminal.ReadPassword(int(syscall.Stdin))
 
 		if err != nil {
@@ -42,7 +46,7 @@ func main() {
 		if err := repository.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account); err != nil {
 			fmt.Errorf("%v", err)
 		}
-	case "load-password":
+	case g:
 		var account string
 		fmt.Print("Enter account name: ")
 		fmt.Scanln(&account)
@@ -52,7 +56,7 @@ func main() {
 		} else {
 			clipboard.WriteAll(password)
 		}
-	case "accounts":
+	case l:
 		repository.PrintAccountsList(key[:])
 	}
 }

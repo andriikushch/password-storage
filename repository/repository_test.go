@@ -4,6 +4,7 @@ import (
 	"testing"
 	"crypto/sha256"
 	"fmt"
+	"os"
 )
 
 func TestAddNewCredentials(t *testing.T) {
@@ -27,12 +28,13 @@ func TestAddNewCredentials(t *testing.T) {
 	accounts := []string {a1, a2, a3, a4, a5, a6}
 
 	databaseFile = "db2_test"
+	defer os.Remove(databaseFile)
 
-	for i, _ := range passwords {
+	for i := range passwords {
 		AddNewCredentials(key[:], []byte(passwords[i]), []byte(passwords[i]), accounts[i])
 	}
 	//to found bug with duplication in map
-	for i, _ := range passwords {
+	for i := range passwords {
 		AddNewCredentials(key[:], []byte(passwords[i]), []byte(passwords[i]), accounts[i])
 	}
 
@@ -43,8 +45,8 @@ func TestAddNewCredentials(t *testing.T) {
 		t.FailNow()
 	}
 
-	for i, _ := range list {
-		for j, _ := range accounts {
+	for i := range list {
+		for j := range accounts {
 			if accounts[j] != list[i] {
 				break
 			}
@@ -60,6 +62,4 @@ func TestAddNewCredentials(t *testing.T) {
 		fmt.Print("Accounts duplicated")
 		t.FailNow()
 	}
-
-
 }
