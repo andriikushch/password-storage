@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/andriikushch/clipboard"
 	"github.com/andriikushch/password-storage/repository"
+	"syscall"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var (
@@ -20,7 +22,24 @@ func main() {
 
 	switch *command {
 	case "add-new-credentials":
-		if err := repository.AddNewCredentials(key[:]); err != nil {
+		var account string
+		fmt.Print("Enter account name: ")
+		fmt.Scanln(&account)
+
+		fmt.Print("Enter password: ")
+		bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			fmt.Printf("%v", err)
+		}
+
+		fmt.Print("\nEnter password confirmation: ")
+		bytePasswordConfirmation, err := terminal.ReadPassword(int(syscall.Stdin))
+
+		if err != nil {
+			fmt.Println("Can't read password confiramtion")
+		}
+
+		if err := repository.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account); err != nil {
 			fmt.Errorf("%v", err)
 		}
 	case "load-password":

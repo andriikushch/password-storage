@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"syscall"
 
 	"github.com/andriikushch/password-storage/crypt"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 var (
@@ -60,26 +58,8 @@ func ShowAccountsList(key []byte) error {
 	return nil
 }
 
-func AddNewCredentials(key []byte) error {
-	var account string
-
-	fmt.Print("Enter account name: ")
-	fmt.Scanln(&account)
-
-	fmt.Print("Enter password: ")
-	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
-	if err != nil {
-		fmt.Printf("%v", err)
-		return errors.New("Can't read password")
-	}
+func AddNewCredentials(key, bytePassword, bytePasswordConfirmation []byte, account string) error {
 	password := string(bytePassword)
-
-	fmt.Print("\nEnter password confirmation: ")
-	bytePasswordConfirmation, err := terminal.ReadPassword(int(syscall.Stdin))
-
-	if err != nil {
-		return errors.New("Can't read password confiramtion")
-	}
 	passwordConfirmation := string(bytePasswordConfirmation)
 
 	if password == passwordConfirmation {
@@ -90,13 +70,9 @@ func AddNewCredentials(key []byte) error {
 }
 
 func storeAccountPasswordPair(key []byte, account string, password string) error {
-	//////////
-	// First lets encode some data
-	//////////
 	db[account] = crypt.Encrypt(key, password)
 	encodeFile := new(os.File)
 
-	// Create a file for IO
 	if _, err := os.Stat(databaseFile); os.IsNotExist(err) {
 		encodeFile, err = os.Create(databaseFile)
 
