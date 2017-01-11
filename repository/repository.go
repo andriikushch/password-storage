@@ -8,10 +8,11 @@ import (
 
 	"github.com/andriikushch/password-storage/crypt"
 	"encoding/base64"
+	"runtime"
 )
 
 var (
-	databaseFile = "dat2"
+	databaseFile = userHomeDir() + "/.dat2"
 	db           = make(map[string][]byte)
 )
 
@@ -29,13 +30,18 @@ func FindPassword(key []byte, account string) (string, error) {
 	// Decode -- We need to pass a pointer otherwise accounts2 isn't modified
 	decoder.Decode(&db)
 
-	password, ok := db[account]
+	for acc, password := range db {
+		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
+		if err != nil {
+			return "", err
+		}
 
-	if !ok {
-		return "", errors.New("Can't find password for account")
+		if account == crypt.Decrypt(key, encryptedAccount) {
+			return crypt.Decrypt(key, password), nil
+		}
 	}
 
-	return crypt.Decrypt(key, password), nil
+	return "", errors.New("Can't find password for account")
 }
 
 func getAccountsList(key []byte) ([]string, error) {
@@ -129,4 +135,15 @@ func loadDB() error {
 
 	// Decode -- We need to pass a pointer otherwise accounts2 isn't modified
 	return  decoder.Decode(&db)
+}
+
+func userHomeDir() string {
+	if runtime.GOOS == "windows" {
+		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		if home == "" {
+			home = os.Getenv("USERPROFILE")
+		}
+		return home
+	}
+	return os.Getenv("HOME")
 }

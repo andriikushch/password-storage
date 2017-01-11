@@ -36,7 +36,7 @@ func main() {
 			fmt.Printf("%v", err)
 		}
 
-		fmt.Print("\nEnter password confirmation: \n")
+		fmt.Print("\nEnter password confirmation: ")
 		bytePasswordConfirmation, err := terminal.ReadPassword(int(syscall.Stdin))
 
 		if err != nil {
@@ -46,6 +46,8 @@ func main() {
 		if err := repository.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account); err != nil {
 			fmt.Errorf("%v", err)
 		}
+
+		fmt.Println("")
 	case g:
 		var account string
 		fmt.Print("Enter account name: ")
