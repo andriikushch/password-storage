@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/andriikushch/password-storage/crypt"
+	"encoding/base64"
 )
 
 var (
@@ -37,22 +38,30 @@ func FindPassword(key []byte, account string) (string, error) {
 	return crypt.Decrypt(key, password), nil
 }
 
-func ShowAccountsList(key []byte) error {
-	// Open a RO file
-	decodeFile, err := os.Open(databaseFile)
-	if err != nil {
-		panic(err)
-	}
-	defer decodeFile.Close()
+func getAccountsList(key []byte) ([]string, error) {
+	loadDB()
 
-	// Create a decoder
-	decoder := gob.NewDecoder(decodeFile)
-
-	// Decode -- We need to pass a pointer otherwise accounts2 isn't modified
-	decoder.Decode(&db)
+	var result []string
 
 	for acc := range db {
-		fmt.Printf("%s\n", acc)
+		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, crypt.Decrypt(key, encryptedAccount))
+	}
+
+	return result, nil
+}
+
+func PrintAccountsList(key []byte) error {
+	list, err := getAccountsList(key)
+
+	if err != nil {
+		return err
+	}
+	for _, v := range list {
+		fmt.Printf("%s\n", v)
 	}
 
 	return nil
@@ -70,15 +79,17 @@ func AddNewCredentials(key, bytePassword, bytePasswordConfirmation []byte, accou
 }
 
 func storeAccountPasswordPair(key []byte, account string, password string) error {
-	db[account] = crypt.Encrypt(key, password)
+	loadDB()
+
+	encryptedAccount := crypt.Encrypt(key, account)
+	db[base64.StdEncoding.EncodeToString(encryptedAccount)] = crypt.Encrypt(key, password)
 	encodeFile := new(os.File)
 
-	if _, err := os.Stat(databaseFile); os.IsNotExist(err) {
-		encodeFile, err = os.Create(databaseFile)
+	//recreate DB file
+	encodeFile, err := os.Create(databaseFile)
 
-		if err != nil {
-			panic(err)
-		}
+	if err != nil {
+		panic(err)
 	}
 
 	// Since this is a binary format large parts of it will be unreadable
@@ -90,4 +101,19 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 	}
 
 	return encodeFile.Close()
+}
+
+func loadDB() error {
+	// Open a RO file
+	decodeFile, err := os.Open(databaseFile)
+	if err != nil {
+		return err
+	}
+	defer decodeFile.Close()
+
+	// Create a decoder
+	decoder := gob.NewDecoder(decodeFile)
+
+	// Decode -- We need to pass a pointer otherwise accounts2 isn't modified
+	return  decoder.Decode(&db)
 }

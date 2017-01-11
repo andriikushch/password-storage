@@ -53,6 +53,6 @@ func main() {
 			clipboard.WriteAll(password)
 		}
 	case "accounts":
-		repository.ShowAccountsList(key[:])
+		repository.PrintAccountsList(key[:])
 	}
 }
