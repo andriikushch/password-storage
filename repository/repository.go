@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/andriikushch/password-storage/crypt"
 	"encoding/base64"
+	"github.com/andriikushch/password-storage/crypt"
 	"runtime"
 )
 
@@ -100,7 +100,6 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 		}
 	}
 
-
 	db[base64.StdEncoding.EncodeToString(encryptedAccount)] = crypt.Encrypt(key, password)
 	encodeFile := new(os.File)
 
@@ -134,7 +133,7 @@ func loadDB() error {
 	decoder := gob.NewDecoder(decodeFile)
 
 	// Decode -- We need to pass a pointer otherwise accounts2 isn't modified
-	return  decoder.Decode(&db)
+	return decoder.Decode(&db)
 }
 
 func userHomeDir() string {

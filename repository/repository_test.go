@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"testing"
 	"crypto/sha256"
 	"fmt"
 	"os"
+	"testing"
 )
 
 func TestAddNewCredentials(t *testing.T) {
@@ -24,8 +24,8 @@ func TestAddNewCredentials(t *testing.T) {
 	a5 := "atm"
 	a6 := "twitter"
 
-	passwords := []string {p1, p2, p3, p4, p5, p6}
-	accounts := []string {a1, a2, a3, a4, a5, a6}
+	passwords := []string{p1, p2, p3, p4, p5, p6}
+	accounts := []string{a1, a2, a3, a4, a5, a6}
 
 	databaseFile = "db2_test"
 	defer os.Remove(databaseFile)
@@ -40,7 +40,7 @@ func TestAddNewCredentials(t *testing.T) {
 
 	list, err := getAccountsList(key[:])
 
-	if err != nil{
+	if err != nil {
 		fmt.Printf("%v", err)
 		t.FailNow()
 	}

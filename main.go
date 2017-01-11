@@ -6,16 +6,14 @@ import (
 	"fmt"
 	"github.com/andriikushch/clipboard"
 	"github.com/andriikushch/password-storage/repository"
-	"syscall"
 	"golang.org/x/crypto/ssh/terminal"
+	"syscall"
 )
 
-var (
-	masterPassword = "example key 1234"
-)
+var masterPassword = "example key 1234"
 
 func main() {
-	var l,a,g bool
+	var l, a, g bool
 	key := sha256.Sum256([]byte(masterPassword))
 
 	flag.BoolVar(&l, "l", false, "")
