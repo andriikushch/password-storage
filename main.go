@@ -10,17 +10,21 @@ import (
 	"syscall"
 )
 
-var masterPassword = "example key 1234"
+var masterPassword string
 
 func main() {
 	var l, a, g bool
 	key := sha256.Sum256([]byte(masterPassword))
 
-	flag.BoolVar(&l, "l", false, "")
-	flag.BoolVar(&a, "a", false, "")
-	flag.BoolVar(&g, "g", false, "")
+	flag.BoolVar(&l, "l", false, "list of stored accounts")
+	flag.BoolVar(&a, "a", false, "add new username:password")
+	flag.BoolVar(&g, "g", false, "copy to clip board password for account")
 
 	flag.Parse()
+
+	fmt.Print("Enter master password: ")
+	fmt.Scanln(&masterPassword)
+	fmt.Println("")
 
 	switch true {
 	case a:
