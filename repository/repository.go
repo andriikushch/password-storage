@@ -3,12 +3,12 @@ package repository
 import (
 	"encoding/gob"
 	"errors"
-	"fmt"
 	"os"
 
 	"encoding/base64"
-	"github.com/andriikushch/password-storage/crypt"
 	"runtime"
+
+	"github.com/andriikushch/password-storage/crypt"
 )
 
 var (
@@ -44,7 +44,7 @@ func FindPassword(key []byte, account string) (string, error) {
 	return "", errors.New("Can't find password for account")
 }
 
-func getAccountsList(key []byte) ([]string, error) {
+func GetAccountsList(key []byte) ([]string, error) {
 	loadDB()
 
 	var result []string
@@ -60,19 +60,6 @@ func getAccountsList(key []byte) ([]string, error) {
 	return result, nil
 }
 
-func PrintAccountsList(key []byte) error {
-	list, err := getAccountsList(key)
-
-	if err != nil {
-		return err
-	}
-	for _, v := range list {
-		fmt.Printf("%s\n", v)
-	}
-
-	return nil
-}
-
 func AddNewCredentials(key, bytePassword, bytePasswordConfirmation []byte, account string) error {
 	password := string(bytePassword)
 	passwordConfirmation := string(bytePasswordConfirmation)
@@ -82,6 +69,22 @@ func AddNewCredentials(key, bytePassword, bytePasswordConfirmation []byte, accou
 	}
 
 	return errors.New("Password and Password confirmation is not equal")
+}
+
+func DeleteCredentials(key []byte, account string) {
+	loadDB()
+
+	for acc := range db {
+		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
+		if err != nil {
+			return
+		}
+
+		if account == crypt.Decrypt(key, encryptedAccount) {
+			delete(db, acc)
+			writeToFile()
+		}
+	}
 }
 
 func storeAccountPasswordPair(key []byte, account string, password string) error {
@@ -101,24 +104,28 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 	}
 
 	db[base64.StdEncoding.EncodeToString(encryptedAccount)] = crypt.Encrypt(key, password)
+
+	writeToFile()
+
+	return nil
+}
+
+func writeToFile() {
 	encodeFile := new(os.File)
 
 	//recreate DB file
 	encodeFile, err := os.Create(databaseFile)
-
 	if err != nil {
 		panic(err)
 	}
 
+	defer encodeFile.Close()
 	// Since this is a binary format large parts of it will be unreadable
 	encoder := gob.NewEncoder(encodeFile)
-
 	// Write to the file
 	if err := encoder.Encode(db); err != nil {
 		panic(err)
 	}
-
-	return encodeFile.Close()
 }
 
 func loadDB() error {
