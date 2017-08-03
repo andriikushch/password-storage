@@ -9,7 +9,8 @@ import (
 
 func TestAddNewCredentials(t *testing.T) {
 	masterPassword := "test123"
-	key := sha256.Sum256([]byte(masterPassword))
+	tmpKey := sha256.Sum256([]byte(masterPassword))
+	key := tmpKey[:]
 	p1 := "1"
 	p2 := "!@#$%^&*()_"
 	p3 := "123sad123@#!@# ADSASDA"
@@ -31,14 +32,14 @@ func TestAddNewCredentials(t *testing.T) {
 	defer os.Remove(databaseFile)
 
 	for i := range passwords {
-		AddNewCredentials(key[:], []byte(passwords[i]), []byte(passwords[i]), accounts[i])
+		AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i])
 	}
 	//to found bug with duplication in map
 	for i := range passwords {
-		AddNewCredentials(key[:], []byte(passwords[i]), []byte(passwords[i]), accounts[i])
+		AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i])
 	}
 
-	list, err := getAccountsList(key[:])
+	list, err := GetAccountsList(key)
 
 	if err != nil {
 		fmt.Printf("%v", err)
@@ -60,6 +61,26 @@ func TestAddNewCredentials(t *testing.T) {
 
 	if len(accounts) != len(list) {
 		fmt.Print("Accounts duplicated")
+		t.FailNow()
+	}
+
+	password, err := FindPassword(key, a1)
+
+	if err != nil {
+		fmt.Print(err.Error())
+		t.FailNow()
+	}
+
+	if password != p1 {
+		fmt.Print("Passwords should match")
+		t.FailNow()
+	}
+
+	DeleteCredentials(key, a1)
+
+	_, err = FindPassword(key, a1)
+
+	if err.Error() != "Can't find password for account" {
 		t.FailNow()
 	}
 }

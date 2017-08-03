@@ -30,50 +30,61 @@ func main() {
 		panic("Can't read password input")
 	}
 	fmt.Println("")
-	key := sha256.Sum256(masterPassword)
+	tmpKey := sha256.Sum256(masterPassword)
+	key := tmpKey[:]
 	switch true {
 	case a:
-		var account string
-		fmt.Print("Enter account name: ")
-		fmt.Scanln(&account)
-
-		fmt.Print("Enter password: ")
-		bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
-		if err != nil {
-			fmt.Printf("%v", err)
-		}
-
-		fmt.Print("\nEnter password confirmation: ")
-		bytePasswordConfirmation, err := terminal.ReadPassword(int(syscall.Stdin))
-
-		if err != nil {
-			fmt.Println("Can't read password confiramtion")
-		}
-
-		if err := repository.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account); err != nil {
-			fmt.Errorf("%v", err)
-		}
-
-		fmt.Println("")
+		addAccountMenuItem(key)
 	case g:
-		var account string
-		fmt.Print("Enter account name: ")
-		fmt.Scanln(&account)
-		password, err := repository.FindPassword(key[:], account)
-		if err != nil {
-			fmt.Errorf("%v", err)
-		} else {
-			clipboard.WriteAll(password)
-		}
+		getPasswordForAccountMenuItem(key)
 	case l:
-		printAccountsList(key[:])
+		printAccountMenuItem(key)
 	case d:
-		accountToDelete := -1
-		printAccountsList(key[:])
-		fmt.Println("Select account to delete (number): ")
-		fmt.Scanln(&accountToDelete)
-		repository.DeleteCredentials(key[:], accountList[accountToDelete])
+		deleteAccountMenuItem(key)
 	}
+}
+func printAccountMenuItem(key []byte) {
+	printAccountsList(key)
+}
+
+func deleteAccountMenuItem(key []byte) {
+	accountToDelete := -1
+	printAccountsList(key)
+	fmt.Println("Select account to delete (number): ")
+	fmt.Scanln(&accountToDelete)
+	repository.DeleteCredentials(key, accountList[accountToDelete])
+}
+
+func getPasswordForAccountMenuItem(key []byte) {
+	var account string
+	fmt.Print("Enter account name: ")
+	fmt.Scanln(&account)
+	password, err := repository.FindPassword(key, account)
+	if err != nil {
+		fmt.Errorf("%v", err)
+	} else {
+		clipboard.WriteAll(password)
+	}
+}
+
+func addAccountMenuItem(key []byte) {
+	var account string
+	fmt.Print("Enter account name: ")
+	fmt.Scanln(&account)
+	fmt.Print("Enter password: ")
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+	fmt.Print("\nEnter password confirmation: ")
+	bytePasswordConfirmation, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		fmt.Println("Can't read password confiramtion")
+	}
+	if err := repository.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account); err != nil {
+		fmt.Errorf("%v", err)
+	}
+	fmt.Println("")
 }
 
 func printAccountsList(key []byte) {
