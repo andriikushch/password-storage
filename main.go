@@ -9,15 +9,18 @@ import (
 	"github.com/andriikushch/clipboard"
 	"github.com/andriikushch/password-storage/repository"
 	"golang.org/x/crypto/ssh/terminal"
+	"io"
+	"crypto/rand"
 )
 
 var accountList map[int]string
 
 func main() {
-	var l, a, g, d bool
+	var l, ac, a, g, d bool
 
 	flag.BoolVar(&l, "l", false, "list of stored accounts")
-	flag.BoolVar(&a, "a", false, "add new username:password")
+	flag.BoolVar(&a, "a", false, "add new account with random password")
+	flag.BoolVar(&a, "ac", false, "add new username:password")
 	flag.BoolVar(&g, "g", false, "copy to clip board password for account")
 	flag.BoolVar(&d, "d", false, "delete password for account")
 
@@ -34,7 +37,9 @@ func main() {
 	key := tmpKey[:]
 	switch true {
 	case a:
-		addAccountMenuItem(key)
+		addAccountWithRandomPasswordMenuItem(key)
+	case ac:
+		addCredentialsMenuItem(key)
 	case g:
 		getPasswordForAccountMenuItem(key)
 	case l:
@@ -67,7 +72,20 @@ func getPasswordForAccountMenuItem(key []byte) {
 	}
 }
 
-func addAccountMenuItem(key []byte) {
+func addAccountWithRandomPasswordMenuItem(key []byte) {
+	var stdChars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%^&*()-_=+{}[]")
+	var account string
+	fmt.Print("Enter account name: ")
+	fmt.Scanln(&account)
+
+	password := rand_char(16, stdChars)
+	if err := repository.AddNewCredentials(key[:], []byte(password), []byte(password), account); err != nil {
+		fmt.Errorf("%v", err)
+	}
+	fmt.Println("")
+}
+
+func addCredentialsMenuItem(key []byte) {
 	var account string
 	fmt.Print("Enter account name: ")
 	fmt.Scanln(&account)
@@ -104,4 +122,29 @@ func generateAccountList(key []byte) {
 	for k, v := range list {
 		accountList[k] = v
 	}
+}
+
+
+func rand_char(length int, chars []byte) string {
+	new_pword := make([]byte, length)
+	random_data := make([]byte, length+(length/4)) // storage for random bytes.
+	clen := byte(len(chars))
+	maxrb := byte(256 - (256 % len(chars)))
+	i := 0
+	for {
+		if _, err := io.ReadFull(rand.Reader, random_data); err != nil {
+			panic(err)
+		}
+		for _, c := range random_data {
+			if c >= maxrb {
+				continue
+			}
+			new_pword[i] = chars[c%clen]
+			i++
+			if i == length {
+				return string(new_pword)
+			}
+		}
+	}
+	panic("unreachable")
 }

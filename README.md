@@ -8,8 +8,9 @@ Usage:
 
 ```
 go run main.go -h
-  -a add new username:password
-  -g copy to clip board password for account
-  -l list of stored accounts
-  -d delete password for account
+  -g	add new account with random password
+  -ac   add new username:password
+  -d	delete password for account
+  -g	copy to clip board password for account
+  -l	list of stored accounts
 ```
