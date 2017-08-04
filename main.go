@@ -1,16 +1,17 @@
 package main
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"flag"
 	"fmt"
 	"syscall"
 
+	"io"
+
 	"github.com/andriikushch/clipboard"
 	"github.com/andriikushch/password-storage/repository"
 	"golang.org/x/crypto/ssh/terminal"
-	"io"
-	"crypto/rand"
 )
 
 var accountList map[int]string
@@ -123,7 +124,6 @@ func generateAccountList(key []byte) {
 		accountList[k] = v
 	}
 }
-
 
 func rand_char(length int, chars []byte) string {
 	new_pword := make([]byte, length)
