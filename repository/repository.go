@@ -139,7 +139,6 @@ func loadDB() error {
 	// Create a decoder
 	decoder := gob.NewDecoder(decodeFile)
 
-	// Decode -- We need to pass a pointer otherwise accounts2 isn't modified
 	return decoder.Decode(&db)
 }
 

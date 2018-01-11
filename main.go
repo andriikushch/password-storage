@@ -21,7 +21,7 @@ func main() {
 
 	flag.BoolVar(&l, "l", false, "list of stored accounts")
 	flag.BoolVar(&a, "a", false, "add new account with random password")
-	flag.BoolVar(&a, "ac", false, "add new username:password")
+	flag.BoolVar(&ac, "ac", false, "add new username:password")
 	flag.BoolVar(&g, "g", false, "copy to clip board password for account")
 	flag.BoolVar(&d, "d", false, "delete password for account")
 
@@ -79,7 +79,7 @@ func addAccountWithRandomPasswordMenuItem(key []byte) {
 	fmt.Print("Enter account name: ")
 	fmt.Scanln(&account)
 
-	password := rand_char(16, stdChars)
+	password := randChar(16, stdChars)
 	if err := repository.AddNewCredentials(key[:], []byte(password), []byte(password), account); err != nil {
 		fmt.Errorf("%v", err)
 	}
@@ -125,24 +125,24 @@ func generateAccountList(key []byte) {
 	}
 }
 
-func rand_char(length int, chars []byte) string {
-	new_pword := make([]byte, length)
-	random_data := make([]byte, length+(length/4)) // storage for random bytes.
+func randChar(length int, chars []byte) string {
+	newPword := make([]byte, length)
+	randomData := make([]byte, length+(length/4)) // storage for random bytes.
 	clen := byte(len(chars))
 	maxrb := byte(256 - (256 % len(chars)))
 	i := 0
 	for {
-		if _, err := io.ReadFull(rand.Reader, random_data); err != nil {
+		if _, err := io.ReadFull(rand.Reader, randomData); err != nil {
 			panic(err)
 		}
-		for _, c := range random_data {
+		for _, c := range randomData {
 			if c >= maxrb {
 				continue
 			}
-			new_pword[i] = chars[c%clen]
+			newPword[i] = chars[c%clen]
 			i++
 			if i == length {
-				return string(new_pword)
+				return string(newPword)
 			}
 		}
 	}
