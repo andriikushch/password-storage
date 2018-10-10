@@ -4,6 +4,9 @@ go:
  - go1.6
  - go1.7
  - go1.8
+ - go1.9
+ - go1.10
+ - go1.11
 
 script:
  - go test -v .

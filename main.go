@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"syscall"
 
+	"github.com/atotto/clipboard"
+
 	"io"
 
-	"github.com/andriikushch/clipboard"
 	"github.com/andriikushch/password-storage/repository"
 	"golang.org/x/crypto/ssh/terminal"
 )
