@@ -80,7 +80,7 @@ func TestAddNewCredentials(t *testing.T) {
 
 	_, err = FindPassword(key, a1)
 
-	if err.Error() != "Can't find password for account" {
+	if err.Error() != "can't find password for account" {
 		t.FailNow()
 	}
 }
