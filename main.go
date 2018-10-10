@@ -67,21 +67,20 @@ func getPasswordForAccountMenuItem(key []byte) {
 	fmt.Scanln(&account)
 	password, err := repository.FindPassword(key, account)
 	if err != nil {
-		fmt.Errorf("%v", err)
+		fmt.Printf("%v", err)
 	} else {
 		clipboard.WriteAll(password)
 	}
 }
 
 func addAccountWithRandomPasswordMenuItem(key []byte) {
-	var stdChars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%^&*()-_=+{}[]")
 	var account string
 	fmt.Print("Enter account name: ")
 	fmt.Scanln(&account)
 
-	password := randChar(16, stdChars)
+	password := randChar(16)
 	if err := repository.AddNewCredentials(key[:], []byte(password), []byte(password), account); err != nil {
-		fmt.Errorf("%v", err)
+		fmt.Printf("%v", err)
 	}
 	fmt.Println("")
 }
@@ -101,7 +100,7 @@ func addCredentialsMenuItem(key []byte) {
 		fmt.Println("Can't read password confiramtion")
 	}
 	if err := repository.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account); err != nil {
-		fmt.Errorf("%v", err)
+		fmt.Printf("%v", err)
 	}
 	fmt.Println("")
 }
@@ -125,10 +124,11 @@ func generateAccountList(key []byte) {
 	}
 }
 
-func randChar(length int, chars []byte) string {
-	newPword := make([]byte, length)
+func randChar(length int) string {
+	chars := []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%^&*()-_=+{}[]")
+	password := make([]byte, length)
 	randomData := make([]byte, length+(length/4)) // storage for random bytes.
-	clen := byte(len(chars))
+	charsLength := byte(len(chars))
 	maxrb := byte(256 - (256 % len(chars)))
 	i := 0
 	for {
@@ -139,10 +139,10 @@ func randChar(length int, chars []byte) string {
 			if c >= maxrb {
 				continue
 			}
-			newPword[i] = chars[c%clen]
+			password[i] = chars[c%charsLength]
 			i++
 			if i == length {
-				return string(newPword)
+				return string(password)
 			}
 		}
 	}

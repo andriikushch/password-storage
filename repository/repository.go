@@ -24,10 +24,7 @@ func FindPassword(key []byte, account string) (string, error) {
 	}
 	defer decodeFile.Close()
 
-	// Create a decoder
 	decoder := gob.NewDecoder(decodeFile)
-
-	// Decode -- We need to pass a pointer otherwise accounts2 isn't modified
 	decoder.Decode(&db)
 
 	for acc, password := range db {
@@ -41,7 +38,7 @@ func FindPassword(key []byte, account string) (string, error) {
 		}
 	}
 
-	return "", errors.New("Can't find password for account")
+	return "", errors.New("can't find password for account")
 }
 
 func GetAccountsList(key []byte) ([]string, error) {
@@ -68,7 +65,7 @@ func AddNewCredentials(key, bytePassword, bytePasswordConfirmation []byte, accou
 		return storeAccountPasswordPair(key, account, password)
 	}
 
-	return errors.New("Password and Password confirmation is not equal")
+	return errors.New("password and password confirmation is not equal")
 }
 
 func DeleteCredentials(key []byte, account string) {
