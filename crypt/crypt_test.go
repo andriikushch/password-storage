@@ -1,9 +1,9 @@
 package crypt
 
 import (
-	"testing"
 	"crypto/sha256"
 	"fmt"
+	"testing"
 )
 
 func TestEncryptDecrypt(t *testing.T) {
@@ -16,14 +16,14 @@ func TestEncryptDecrypt(t *testing.T) {
 	p5 := "t5plil"
 	p6 := "a"
 
-	passwords := []string {p1, p2, p3, p4, p5, p6}
+	passwords := []string{p1, p2, p3, p4, p5, p6}
 
 	for _, p := range passwords {
 		c := Encrypt(key[:], p)
 		d := string(Decrypt(key[:], c))
 		if d != p {
 			fmt.Printf("%v \n %v \n", []byte(d), []byte(p))
-			fmt.Printf("%s \n", d + " != " + p)
+			fmt.Printf("%s \n", d+" != "+p)
 			t.Fail()
 		}
 	}
@@ -38,4 +38,14 @@ func TestEncrypt(t *testing.T) {
 		fmt.Printf("%v", "encrypted text is equal")
 		t.FailNow()
 	}
+}
+
+func TestDecryptPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("The code did not panic")
+		}
+	}()
+
+	Encrypt([]byte(""), "facebook")
 }

@@ -36,26 +36,23 @@ func Encrypt(key []byte, password string) []byte {
 }
 
 func Decrypt(key []byte, encryptedpassword []byte) string {
-
-	ciphertext := encryptedpassword
-
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
 
-	if len(ciphertext) < aes.BlockSize {
+	if len(encryptedpassword) < aes.BlockSize {
 		panic("ciphertext too short")
 	}
-	iv := ciphertext[:aes.BlockSize]
-	ciphertext = ciphertext[aes.BlockSize:]
+	iv := encryptedpassword[:aes.BlockSize]
+	encryptedpassword = encryptedpassword[aes.BlockSize:]
 
-	if len(ciphertext)%aes.BlockSize != 0 {
+	if len(encryptedpassword)%aes.BlockSize != 0 {
 		panic("ciphertext is not a multiple of the block size")
 	}
 
 	mode := cipher.NewCBCDecrypter(block, iv)
-	mode.CryptBlocks(ciphertext, ciphertext)
+	mode.CryptBlocks(encryptedpassword, encryptedpassword)
 
-	return strings.TrimRight(string(ciphertext), PADDING)
+	return strings.TrimRight(string(encryptedpassword), PADDING)
 }
