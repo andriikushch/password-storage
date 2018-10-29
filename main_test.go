@@ -8,7 +8,7 @@ import (
 
 func Test_randChar(t *testing.T) {
 	iterations := 20
-	lenght := []int{
+	length := []int{
 		1,
 		5,
 		7,
@@ -19,7 +19,7 @@ func Test_randChar(t *testing.T) {
 	}
 
 	for i := 0; i < iterations; i++ {
-		for _, v := range lenght {
+		for _, v := range length {
 			rndString := randChar(v)
 			assert.Len(t, rndString, v)
 		}
