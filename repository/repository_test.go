@@ -32,11 +32,17 @@ func TestAddNewCredentials(t *testing.T) {
 	defer os.Remove(databaseFile)
 
 	for i := range passwords {
-		AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i])
+		if err := AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
+			fmt.Printf("%v", err)
+			t.FailNow()
+		}
 	}
 	//to found bug with duplication in map
 	for i := range passwords {
-		AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i])
+		if err := AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
+			fmt.Printf("%v", err)
+			t.FailNow()
+		}
 	}
 
 	list, err := GetAccountsList(key)
@@ -76,11 +82,15 @@ func TestAddNewCredentials(t *testing.T) {
 		t.FailNow()
 	}
 
-	DeleteCredentials(key, a1)
+	if err := DeleteCredentials(key, a1); err != nil {
+		fmt.Printf("%v", err)
+		t.FailNow()
+	}
 
 	_, err = FindPassword(key, a1)
 
-	if err.Error() != "can't find password for account" {
+	if err.Error() != ErrPasswordNotFound.Error() {
+		fmt.Printf("%v", err)
 		t.FailNow()
 	}
 }

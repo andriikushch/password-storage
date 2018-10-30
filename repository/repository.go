@@ -12,15 +12,29 @@ import (
 )
 
 var (
-	databaseFile = userHomeDir() + "/.dat2"
-	db           = make(map[string][]byte)
+	databaseFile                               = userHomeDir() + "/.dat2"
+	db                                         = make(map[string][]byte)
+	ErrOpenDatabase                            = errors.New("error open database")
+	ErrDecodeString                            = errors.New("error decode string")
+	ErrPasswordNotFound                        = errors.New("error password not found")
+	ErrPasswordAndPasswordConfirmationMatching = errors.New("error password and password confirmation not matching")
+	ErrFileCreation                            = errors.New("error create new file")
+	ErrEncodeDB                                = errors.New("error encode db")
+	ErrDecodeDB                                = errors.New("error decode db")
 )
+
+type Repository interface {
+	FindPassword(key []byte, account string) (string, error)
+	GetAccountsList(key []byte) ([]string, error)
+	AddNewCredentials(key, bytePassword, bytePasswordConfirmation []byte, account string) error
+	DeleteCredentials(key []byte, account string) error
+}
 
 func FindPassword(key []byte, account string) (string, error) {
 	// Open a RO file
 	decodeFile, err := os.Open(databaseFile)
 	if err != nil {
-		panic(err)
+		return "", ErrOpenDatabase
 	}
 	defer decodeFile.Close()
 
@@ -30,26 +44,29 @@ func FindPassword(key []byte, account string) (string, error) {
 	for acc, password := range db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
-			return "", err
+			return "", ErrDecodeString
 		}
 
-		if account == crypt.Decrypt(key, encryptedAccount) {
+		decryptedAccount := crypt.Decrypt(key, encryptedAccount)
+		if account == decryptedAccount {
 			return crypt.Decrypt(key, password), nil
 		}
 	}
 
-	return "", errors.New("can't find password for account")
+	return "", ErrPasswordNotFound
 }
 
 func GetAccountsList(key []byte) ([]string, error) {
-	loadDB()
+	if err := loadDB(); err != nil {
+		return nil, err
+	}
 
 	var result []string
 
 	for acc := range db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
-			return nil, err
+			return nil, ErrDecodeString
 		}
 		result = append(result, crypt.Decrypt(key, encryptedAccount))
 	}
@@ -65,23 +82,29 @@ func AddNewCredentials(key, bytePassword, bytePasswordConfirmation []byte, accou
 		return storeAccountPasswordPair(key, account, password)
 	}
 
-	return errors.New("password and password confirmation is not equal")
+	return ErrPasswordAndPasswordConfirmationMatching
 }
 
-func DeleteCredentials(key []byte, account string) {
-	loadDB()
+func DeleteCredentials(key []byte, account string) error {
+	if err := loadDB(); err != nil {
+		return err
+	}
 
 	for acc := range db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
-			return
+			return ErrDecodeString
 		}
 
 		if account == crypt.Decrypt(key, encryptedAccount) {
 			delete(db, acc)
-			writeToFile()
+			if err := writeToFile(); err != nil {
+				return err
+			}
 		}
 	}
+
+	return nil
 }
 
 func storeAccountPasswordPair(key []byte, account string, password string) error {
@@ -92,7 +115,7 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 	for acc := range db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
-			return err
+			return ErrDecodeString
 		}
 
 		if account == crypt.Decrypt(key, encryptedAccount) {
@@ -107,13 +130,13 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 	return nil
 }
 
-func writeToFile() {
+func writeToFile() error {
 	encodeFile := new(os.File)
 
 	//recreate DB file
 	encodeFile, err := os.Create(databaseFile)
 	if err != nil {
-		panic(err)
+		return ErrFileCreation
 	}
 
 	defer encodeFile.Close()
@@ -121,22 +144,28 @@ func writeToFile() {
 	encoder := gob.NewEncoder(encodeFile)
 	// Write to the file
 	if err := encoder.Encode(db); err != nil {
-		panic(err)
+		return ErrEncodeDB
 	}
+
+	return nil
 }
 
 func loadDB() error {
 	// Open a RO file
 	decodeFile, err := os.Open(databaseFile)
 	if err != nil {
-		return err
+		return ErrOpenDatabase
 	}
 	defer decodeFile.Close()
 
 	// Create a decoder
 	decoder := gob.NewDecoder(decodeFile)
 
-	return decoder.Decode(&db)
+	if err := decoder.Decode(&db); err != nil {
+		return ErrDecodeDB
+	}
+
+	return nil
 }
 
 func userHomeDir() string {
