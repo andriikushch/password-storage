@@ -19,8 +19,17 @@ func TestEncryptDecrypt(t *testing.T) {
 	passwords := []string{p1, p2, p3, p4, p5, p6}
 
 	for _, p := range passwords {
-		c := Encrypt(key[:], p)
-		d := string(Decrypt(key[:], c))
+		c, err1 := Encrypt(key[:], p)
+		if err1 != nil {
+			fmt.Println(err1.Error())
+			t.Fail()
+		}
+
+		d, err2 := Decrypt(key[:], c)
+		if err2 != nil {
+			fmt.Println(err2.Error())
+			t.Fail()
+		}
 		if d != p {
 			fmt.Printf("%v \n %v \n", []byte(d), []byte(p))
 			fmt.Printf("%s \n", d+" != "+p)
@@ -34,18 +43,31 @@ func TestEncrypt(t *testing.T) {
 	key := sha256.Sum256([]byte(masterPassword))
 	text := "facebook"
 
-	if string(Encrypt(key[:], text)) == string(Encrypt(key[:], text)) {
-		fmt.Printf("%v", "encrypted text is equal")
+	a, err1 := Encrypt(key[:], text)
+
+	b, err2 := Encrypt(key[:], text)
+
+	if err1 != nil {
+		fmt.Println(err1.Error())
+		t.FailNow()
+	}
+
+	if err2 != nil {
+		fmt.Println(err2.Error())
+		t.FailNow()
+	}
+
+	if string(a) == string(b) {
+		fmt.Println("encrypted text is equal")
 		t.FailNow()
 	}
 }
 
-func TestDecryptPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("The code did not panic")
-		}
-	}()
+func TestDecryptError(t *testing.T) {
+	_, err := Encrypt([]byte(""), "facebook")
 
-	Encrypt([]byte(""), "facebook")
+	if err != ErrCipherCreation {
+		fmt.Println("Wrong error ", err.Error())
+		t.FailNow()
+	}
 }

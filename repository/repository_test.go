@@ -33,14 +33,16 @@ func TestAddNewCredentials(t *testing.T) {
 
 	for i := range passwords {
 		if err := AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
-			fmt.Printf("%v", err)
+			fmt.Println("AddNewCredentials 1")
+			fmt.Println(err.Error())
 			t.FailNow()
 		}
 	}
 	//to found bug with duplication in map
 	for i := range passwords {
 		if err := AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
-			fmt.Printf("%v", err)
+			fmt.Println("AddNewCredentials 2")
+			fmt.Println(err.Error())
 			t.FailNow()
 		}
 	}
@@ -48,7 +50,8 @@ func TestAddNewCredentials(t *testing.T) {
 	list, err := GetAccountsList(key)
 
 	if err != nil {
-		fmt.Printf("%v", err)
+		fmt.Println("GetAccountsList")
+		fmt.Println(err.Error())
 		t.FailNow()
 	}
 

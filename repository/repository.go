@@ -3,6 +3,7 @@ package repository
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"os"
 
 	"encoding/base64"
@@ -47,9 +48,14 @@ func FindPassword(key []byte, account string) (string, error) {
 			return "", ErrDecodeString
 		}
 
-		decryptedAccount := crypt.Decrypt(key, encryptedAccount)
+		decryptedAccount, err := crypt.Decrypt(key, encryptedAccount)
+
+		if err != nil {
+			return "", err
+		}
+
 		if account == decryptedAccount {
-			return crypt.Decrypt(key, password), nil
+			return crypt.Decrypt(key, password)
 		}
 	}
 
@@ -68,7 +74,11 @@ func GetAccountsList(key []byte) ([]string, error) {
 		if err != nil {
 			return nil, ErrDecodeString
 		}
-		result = append(result, crypt.Decrypt(key, encryptedAccount))
+		decryptedAccount, err := crypt.Decrypt(key, encryptedAccount)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, decryptedAccount)
 	}
 
 	return result, nil
@@ -96,7 +106,12 @@ func DeleteCredentials(key []byte, account string) error {
 			return ErrDecodeString
 		}
 
-		if account == crypt.Decrypt(key, encryptedAccount) {
+		decryptedAccount, err := crypt.Decrypt(key, encryptedAccount)
+		if err != nil {
+			return err
+		}
+
+		if account == decryptedAccount {
 			delete(db, acc)
 			if err := writeToFile(); err != nil {
 				return err
@@ -110,7 +125,11 @@ func DeleteCredentials(key []byte, account string) error {
 func storeAccountPasswordPair(key []byte, account string, password string) error {
 	loadDB()
 
-	encryptedAccount := crypt.Encrypt(key, account)
+	encryptedAccount, err := crypt.Encrypt(key, account)
+
+	if err != nil {
+		return err
+	}
 
 	for acc := range db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
@@ -118,12 +137,21 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 			return ErrDecodeString
 		}
 
-		if account == crypt.Decrypt(key, encryptedAccount) {
+		decryptedAccount, err := crypt.Decrypt(key, encryptedAccount)
+
+		if err != nil {
+			return err
+		}
+		if account == decryptedAccount {
 			delete(db, acc)
 		}
 	}
 
-	db[base64.StdEncoding.EncodeToString(encryptedAccount)] = crypt.Encrypt(key, password)
+	encryptedPassword, err := crypt.Encrypt(key, password)
+	if err == nil {
+		return err
+	}
+	db[base64.StdEncoding.EncodeToString(encryptedAccount)] = encryptedPassword
 
 	writeToFile()
 
@@ -154,6 +182,7 @@ func loadDB() error {
 	// Open a RO file
 	decodeFile, err := os.Open(databaseFile)
 	if err != nil {
+		fmt.Println(err.Error())
 		return ErrOpenDatabase
 	}
 	defer decodeFile.Close()
