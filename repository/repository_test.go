@@ -28,7 +28,7 @@ func TestAddNewCredentials(t *testing.T) {
 	passwords := []string{p1, p2, p3, p4, p5, p6}
 	accounts := []string{a1, a2, a3, a4, a5, a6}
 
-	databaseFile = "db2_test"
+	databaseFile = "/tmp/db2_test"
 	defer os.Remove(databaseFile)
 
 	for i := range passwords {

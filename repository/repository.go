@@ -123,7 +123,11 @@ func DeleteCredentials(key []byte, account string) error {
 }
 
 func storeAccountPasswordPair(key []byte, account string, password string) error {
-	loadDB()
+	err := loadDB()
+
+	if err != nil {
+		return err
+	}
 
 	encryptedAccount, err := crypt.Encrypt(key, account)
 
@@ -134,6 +138,7 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 	for acc := range db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
+			fmt.Println(err.Error())
 			return ErrDecodeString
 		}
 
@@ -153,9 +158,7 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 	}
 	db[base64.StdEncoding.EncodeToString(encryptedAccount)] = encryptedPassword
 
-	writeToFile()
-
-	return nil
+	return writeToFile()
 }
 
 func writeToFile() error {
@@ -179,8 +182,15 @@ func writeToFile() error {
 }
 
 func loadDB() error {
-	// Open a RO file
-	decodeFile, err := os.Open(databaseFile)
+	var decodeFile *os.File
+	var err error
+	if _, err := os.Stat(databaseFile); os.IsNotExist(err) {
+		decodeFile, err = os.Create(databaseFile)
+	} else {
+		// Open a RO file
+		decodeFile, err = os.Open(databaseFile)
+	}
+
 	if err != nil {
 		fmt.Println(err.Error())
 		return ErrOpenDatabase
