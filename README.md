@@ -13,7 +13,18 @@ Current implementation has only command line interface. As storage it uses a loc
 |:-------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------|:--------|:------|
 |  [password-storage-mac-x64-v0.0.4](https://github.com/andriikushch/password-storage/tree/master/bin/password-storage-mac-x64-v0.0.4) |  613cc577b16517ffd8634b12e209d8ac | v0.0.4  | OS X  |
 
-Usage:
+## Install
+
+```
+wget https://github.com/andriikushch/password-storage/tree/master/bin/password-storage-x-x-x
+mv password-storage-x-x-x /usr/local/bin
+```
+or if you have local ```go``` installed
+```
+go install github.com/andriikushch/password-storage
+```
+
+## Usage:
 
 ```
 go run main.go -h
