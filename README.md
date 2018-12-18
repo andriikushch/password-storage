@@ -11,7 +11,7 @@ Current implementation has only command line interface. As storage it uses a loc
 
 |            Build                                                                                                                     | Md5 sum                           | Version |  OS   |
 |:-------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------|:--------|:------|
-|  [password-storage-mac-x64-v0.0.4](https://github.com/andriikushch/password-storage/tree/master/bin/password-storage-mac-x64-v0.0.4) |  8caaa9171e17de46ea7b365d098a1a08 | v0.0.4  | OS X  |
+|  [password-storage-mac-x64-v0.0.4](https://github.com/andriikushch/password-storage/tree/master/bin/password-storage-mac-x64-v0.0.4) |  613cc577b16517ffd8634b12e209d8ac | v0.0.4  | OS X  |
 
 Usage:
 
