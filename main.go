@@ -30,6 +30,11 @@ func main() {
 
 	flag.Parse()
 
+	if v {
+		fmt.Println(version)
+		return
+	}
+
 	fmt.Print("Enter master password: ")
 	masterPassword, err := terminal.ReadPassword(int(syscall.Stdin))
 
@@ -50,8 +55,6 @@ func main() {
 		printAccountMenuItem(key)
 	case d:
 		deleteAccountMenuItem(key)
-	case v:
-		fmt.Println(version)
 	}
 }
 func printAccountMenuItem(key []byte) {
