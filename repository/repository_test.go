@@ -28,10 +28,10 @@ func TestAddNewCredentials(t *testing.T) {
 	passwords := []string{p1, p2, p3, p4, p5, p6}
 	accounts := []string{a1, a2, a3, a4, a5, a6}
 
-	databaseFile = "/tmp/db2_test"
+	databaseFile := "/tmp/db2_test"
 	defer os.Remove(databaseFile)
 
-	repository := &PasswordRepository{}
+	repository := NewPasswordRepository(databaseFile)
 
 	for i := range passwords {
 		if err := repository.AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
@@ -122,10 +122,10 @@ func TestChangeMasterKey(t *testing.T) {
 	passwords := []string{p1, p2, p3, p4, p5, p6}
 	accounts := []string{a1, a2, a3, a4, a5, a6}
 
-	databaseFile = "/tmp/db2_test"
+	databaseFile := "/tmp/db2_test"
 	defer os.Remove(databaseFile)
 
-	repository := &PasswordRepository{}
+	repository := NewPasswordRepository(databaseFile)
 
 	for i := range passwords {
 		if err := repository.AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {

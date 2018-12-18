@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"flag"
 	"fmt"
+	"os"
+	"runtime"
 	"syscall"
 
 	"github.com/atotto/clipboard"
@@ -16,7 +18,7 @@ import (
 )
 
 var version = "0.0.3"
-var r = &repository.PasswordRepository{}
+var r = repository.NewPasswordRepository(userHomeDir() + "/.dat2")
 
 func main() {
 	var l, ac, a, g, d, v bool
@@ -153,4 +155,15 @@ func randChar(length int) string {
 		}
 	}
 	panic("unreachable")
+}
+
+func userHomeDir() string {
+	if runtime.GOOS == "windows" {
+		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		if home == "" {
+			home = os.Getenv("USERPROFILE")
+		}
+		return home
+	}
+	return os.Getenv("HOME")
 }

@@ -7,14 +7,10 @@ import (
 	"os"
 
 	"encoding/base64"
-	"runtime"
-
 	"github.com/andriikushch/password-storage/crypt"
 )
 
 var (
-	databaseFile                               = userHomeDir() + "/.dat2"
-	db                                         = make(map[string][]byte)
 	ErrOpenDatabase                            = errors.New("error open database")
 	ErrDecodeString                            = errors.New("error decode string")
 	ErrPasswordNotFound                        = errors.New("error password not found")
@@ -32,12 +28,22 @@ type Repository interface {
 	DeleteCredentials(key []byte, account string) error
 }
 
-type PasswordRepository struct{}
+func NewPasswordRepository(dbFile string) *PasswordRepository {
+	return &PasswordRepository{
+		db:     make(map[string][]byte),
+		dbFile: dbFile,
+	}
+}
+
+type PasswordRepository struct {
+	db     map[string][]byte
+	dbFile string
+}
 
 // Load encrypted password
 func (p *PasswordRepository) FindPassword(key []byte, account string) (string, error) {
 	// Open a RO file
-	decodeFile, err := os.Open(databaseFile)
+	decodeFile, err := os.Open(p.dbFile)
 	if err != nil {
 		log.Println(err.Error())
 		return "", ErrOpenDatabase
@@ -45,9 +51,9 @@ func (p *PasswordRepository) FindPassword(key []byte, account string) (string, e
 	defer decodeFile.Close()
 
 	decoder := gob.NewDecoder(decodeFile)
-	decoder.Decode(&db)
+	decoder.Decode(&p.db)
 
-	for acc, password := range db {
+	for acc, password := range p.db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
 			log.Println(err.Error())
@@ -76,7 +82,7 @@ func (p *PasswordRepository) GetAccountsList(key []byte) ([]string, error) {
 
 	var result []string
 
-	for acc := range db {
+	for acc := range p.db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
 			return nil, ErrDecodeString
@@ -109,7 +115,7 @@ func (p *PasswordRepository) DeleteCredentials(key []byte, account string) error
 		return err
 	}
 
-	for acc := range db {
+	for acc := range p.db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
 			log.Println(err.Error())
@@ -122,7 +128,7 @@ func (p *PasswordRepository) DeleteCredentials(key []byte, account string) error
 		}
 
 		if account == decryptedAccount {
-			delete(db, acc)
+			delete(p.db, acc)
 			if err := p.writeToFile(); err != nil {
 				return err
 			}
@@ -159,7 +165,7 @@ func (p *PasswordRepository) ChangeMasterKey(oldKey, newKey []byte) error {
 		newDb[base64.StdEncoding.EncodeToString(encryptedAccount)] = encryptedPassword
 	}
 
-	db = newDb
+	p.db = newDb
 
 	return p.writeToFile()
 }
@@ -177,7 +183,7 @@ func (p *PasswordRepository) storeAccountPasswordPair(key []byte, account string
 		return err
 	}
 
-	for acc := range db {
+	for acc := range p.db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
 			log.Println(err.Error())
@@ -190,7 +196,7 @@ func (p *PasswordRepository) storeAccountPasswordPair(key []byte, account string
 			return err
 		}
 		if account == decryptedAccount {
-			delete(db, acc)
+			delete(p.db, acc)
 		}
 	}
 
@@ -198,7 +204,7 @@ func (p *PasswordRepository) storeAccountPasswordPair(key []byte, account string
 	if err != nil {
 		return err
 	}
-	db[base64.StdEncoding.EncodeToString(encryptedAccount)] = encryptedPassword
+	p.db[base64.StdEncoding.EncodeToString(encryptedAccount)] = encryptedPassword
 
 	return p.writeToFile()
 }
@@ -207,7 +213,7 @@ func (p *PasswordRepository) writeToFile() error {
 	encodeFile := new(os.File)
 
 	//recreate DB file
-	encodeFile, err := os.Create(databaseFile)
+	encodeFile, err := os.Create(p.dbFile)
 	if err != nil {
 		log.Println(err.Error())
 		return ErrFileCreation
@@ -216,7 +222,7 @@ func (p *PasswordRepository) writeToFile() error {
 	defer encodeFile.Close()
 	encoder := gob.NewEncoder(encodeFile)
 	// Write to the file
-	if err := encoder.Encode(db); err != nil {
+	if err := encoder.Encode(p.db); err != nil {
 		log.Println(err.Error())
 		return ErrEncodeDB
 	}
@@ -227,11 +233,11 @@ func (p *PasswordRepository) writeToFile() error {
 func (p *PasswordRepository) loadDB() error {
 	var decodeFile *os.File
 	var err error
-	if _, err := os.Stat(databaseFile); os.IsNotExist(err) {
-		decodeFile, err = os.Create(databaseFile)
+	if _, err := os.Stat(p.dbFile); os.IsNotExist(err) {
+		decodeFile, err = os.Create(p.dbFile)
 	} else {
 		// Open a RO file
-		decodeFile, err = os.Open(databaseFile)
+		decodeFile, err = os.Open(p.dbFile)
 	}
 
 	if err != nil {
@@ -253,21 +259,10 @@ func (p *PasswordRepository) loadDB() error {
 		return nil
 	}
 
-	if err := decoder.Decode(&db); err != nil {
+	if err := decoder.Decode(&p.db); err != nil {
 		log.Println(err.Error())
 		return ErrDecodeDB
 	}
 
 	return nil
-}
-
-func userHomeDir() string {
-	if runtime.GOOS == "windows" {
-		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-		if home == "" {
-			home = os.Getenv("USERPROFILE")
-		}
-		return home
-	}
-	return os.Getenv("HOME")
 }
