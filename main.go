@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"runtime"
 	"syscall"
 
 	"github.com/atotto/clipboard"
@@ -159,12 +158,9 @@ func randChar(length int) string {
 }
 
 func userHomeDir() string {
-	if runtime.GOOS == "windows" {
-		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-		if home == "" {
-			home = os.Getenv("USERPROFILE")
-		}
+	if home := os.Getenv("HOME"); home != "" {
 		return home
 	}
-	return os.Getenv("HOME")
+
+	panic("$HOME is not set")
 }
