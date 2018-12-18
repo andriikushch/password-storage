@@ -5,6 +5,8 @@
 
 Simple password storage implemented with AES encryption.
 
+## Downloads
+
 |            Build                                                                                                                     | Md5 sum                           | Version |  OS   |
 |:-------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------|:--------|:------|
 |  [password-storage-mac-x64-v0.0.4](https://github.com/andriikushch/password-storage/tree/master/bin/password-storage-mac-x64-v0.0.4) |  8caaa9171e17de46ea7b365d098a1a08 | v0.0.4  | OS X  |
