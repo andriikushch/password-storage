@@ -15,8 +15,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-var version = "0.0.1"
-var accountList map[int]string
+var version = "0.0.2"
 
 func main() {
 	var l, ac, a, g, d, v bool
@@ -66,7 +65,7 @@ func deleteAccountMenuItem(key []byte) {
 	printAccountsList(key)
 	fmt.Println("Select account to delete (number): ")
 	fmt.Scanln(&accountToDelete)
-	repository.DeleteCredentials(key, accountList[accountToDelete])
+	repository.DeleteCredentials(key, generateAccountList(key[:])[accountToDelete])
 }
 
 func getPasswordForAccountMenuItem(key []byte) {
@@ -114,22 +113,20 @@ func addCredentialsMenuItem(key []byte) {
 }
 
 func printAccountsList(key []byte) {
-	generateAccountList(key[:])
-	for k, v := range accountList {
+
+	for k, v := range generateAccountList(key[:]) {
 		fmt.Printf("%d : %s \n", k, v)
 	}
 }
 
-func generateAccountList(key []byte) {
+func generateAccountList(key []byte) []string {
 	list, err := repository.GetAccountsList(key)
 
 	if err != nil {
 		panic("Some error" + err.Error())
 	}
-	accountList = make(map[int]string, len(list))
-	for k, v := range list {
-		accountList[k] = v
-	}
+
+	return list
 }
 
 func randChar(length int) string {
