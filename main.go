@@ -17,7 +17,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-var version = "0.0.3"
+var version = "0.0.4"
 var r = repository.NewPasswordRepository(userHomeDir() + "/.dat2")
 
 func main() {
