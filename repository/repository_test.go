@@ -18,12 +18,12 @@ func TestAddNewCredentials(t *testing.T) {
 	p5 := "t5plil"
 	p6 := "a"
 
-	a1 := "facebook"
-	a2 := "gmail"
-	a3 := "mail"
+	a1 := "fooboo"
+	a2 := "gfoo"
+	a3 := "mailruus"
 	a4 := "bank"
 	a5 := "atm"
-	a6 := "twitter"
+	a6 := "ttter"
 
 	passwords := []string{p1, p2, p3, p4, p5, p6}
 	accounts := []string{a1, a2, a3, a4, a5, a6}
@@ -112,12 +112,12 @@ func TestChangeMasterKey(t *testing.T) {
 	p5 := "t5plil"
 	p6 := "a"
 
-	a1 := "facebook"
-	a2 := "gmail"
-	a3 := "mail"
+	a1 := "fooboo"
+	a2 := "gfoo"
+	a3 := "mailruus"
 	a4 := "bank"
 	a5 := "atm"
-	a6 := "twitter"
+	a6 := "ttter"
 
 	passwords := []string{p1, p2, p3, p4, p5, p6}
 	accounts := []string{a1, a2, a3, a4, a5, a6}
