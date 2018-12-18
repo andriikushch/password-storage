@@ -153,7 +153,7 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 	}
 
 	encryptedPassword, err := crypt.Encrypt(key, password)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	db[base64.StdEncoding.EncodeToString(encryptedAccount)] = encryptedPassword
@@ -199,6 +199,15 @@ func loadDB() error {
 
 	// Create a decoder
 	decoder := gob.NewDecoder(decodeFile)
+
+	fi, err := decodeFile.Stat()
+	if err != nil {
+		return ErrDecodeDB
+	}
+
+	if fi.Size() == 0 {
+		return nil
+	}
 
 	if err := decoder.Decode(&db); err != nil {
 		return ErrDecodeDB

@@ -38,6 +38,7 @@ func TestAddNewCredentials(t *testing.T) {
 			t.FailNow()
 		}
 	}
+
 	//to found bug with duplication in map
 	for i := range passwords {
 		if err := AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
