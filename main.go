@@ -15,16 +15,18 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+var version = "0.0.1"
 var accountList map[int]string
 
 func main() {
-	var l, ac, a, g, d bool
+	var l, ac, a, g, d, v bool
 
 	flag.BoolVar(&l, "l", false, "list of stored accounts")
 	flag.BoolVar(&a, "a", false, "add new account with random password")
 	flag.BoolVar(&ac, "ac", false, "add new username:password")
 	flag.BoolVar(&g, "g", false, "copy to clip board password for account")
 	flag.BoolVar(&d, "d", false, "delete password for account")
+	flag.BoolVar(&d, "v", false, "version")
 
 	flag.Parse()
 
@@ -48,6 +50,8 @@ func main() {
 		printAccountMenuItem(key)
 	case d:
 		deleteAccountMenuItem(key)
+	case v:
+		fmt.Println(version)
 	}
 }
 func printAccountMenuItem(key []byte) {
