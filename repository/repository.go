@@ -3,7 +3,7 @@ package repository
 import (
 	"encoding/gob"
 	"errors"
-	"fmt"
+	"log"
 	"os"
 
 	"encoding/base64"
@@ -35,6 +35,7 @@ func FindPassword(key []byte, account string) (string, error) {
 	// Open a RO file
 	decodeFile, err := os.Open(databaseFile)
 	if err != nil {
+		log.Println(err.Error())
 		return "", ErrOpenDatabase
 	}
 	defer decodeFile.Close()
@@ -45,6 +46,7 @@ func FindPassword(key []byte, account string) (string, error) {
 	for acc, password := range db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
+			log.Println(err.Error())
 			return "", ErrDecodeString
 		}
 
@@ -103,6 +105,7 @@ func DeleteCredentials(key []byte, account string) error {
 	for acc := range db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
+			log.Println(err.Error())
 			return ErrDecodeString
 		}
 
@@ -138,7 +141,7 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 	for acc := range db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Println(err.Error())
 			return ErrDecodeString
 		}
 
@@ -167,6 +170,7 @@ func writeToFile() error {
 	//recreate DB file
 	encodeFile, err := os.Create(databaseFile)
 	if err != nil {
+		log.Println(err.Error())
 		return ErrFileCreation
 	}
 
@@ -175,6 +179,7 @@ func writeToFile() error {
 	encoder := gob.NewEncoder(encodeFile)
 	// Write to the file
 	if err := encoder.Encode(db); err != nil {
+		log.Println(err.Error())
 		return ErrEncodeDB
 	}
 
@@ -192,7 +197,7 @@ func loadDB() error {
 	}
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		return ErrOpenDatabase
 	}
 	defer decodeFile.Close()
@@ -202,6 +207,7 @@ func loadDB() error {
 
 	fi, err := decodeFile.Stat()
 	if err != nil {
+		log.Println(err.Error())
 		return ErrDecodeDB
 	}
 
@@ -210,6 +216,7 @@ func loadDB() error {
 	}
 
 	if err := decoder.Decode(&db); err != nil {
+		log.Println(err.Error())
 		return ErrDecodeDB
 	}
 

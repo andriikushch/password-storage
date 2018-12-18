@@ -5,8 +5,8 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"errors"
-	"fmt"
 	"io"
+	"log"
 	"strings"
 )
 
@@ -29,14 +29,14 @@ func Encrypt(key []byte, password string) ([]byte, error) {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		return nil, ErrCipherCreation
 	}
 
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		fmt.Printf("%v", err)
+		log.Println(err.Error())
 		return nil, ErrCipherTextRead
 	}
 
@@ -49,19 +49,19 @@ func Encrypt(key []byte, password string) ([]byte, error) {
 func Decrypt(key []byte, encryptedpassword []byte) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		fmt.Printf("%v", err)
+		log.Println(err.Error())
 		return "", ErrCipherCreation
 	}
 
 	if len(encryptedpassword) < aes.BlockSize {
-		fmt.Printf("%v", err)
+		log.Println(err.Error())
 		return "", ErrCipherTooShort
 	}
 	iv := encryptedpassword[:aes.BlockSize]
 	encryptedpassword = encryptedpassword[aes.BlockSize:]
 
 	if len(encryptedpassword)%aes.BlockSize != 0 {
-		fmt.Printf("%v", err)
+		log.Println(err.Error())
 		return "", ErrCipherTextWrongSize
 	}
 
