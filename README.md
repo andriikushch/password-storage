@@ -5,6 +5,8 @@
 
 Simple password storage implemented with AES encryption.
 
+Current implementation has only command line interface. As storage it uses a local file ```~/.dat2```. 
+
 ## Downloads
 
 |            Build                                                                                                                     | Md5 sum                           | Version |  OS   |
