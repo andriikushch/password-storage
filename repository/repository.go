@@ -24,6 +24,7 @@ var (
 	ErrDecodeDB                                = errors.New("error decode db")
 )
 
+// interface for credential repository
 type Repository interface {
 	FindPassword(key []byte, account string) (string, error)
 	GetAccountsList(key []byte) ([]string, error)

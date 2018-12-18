@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const PADDING = "\x00"
+const padding = "\x00"
 
 var (
 	ErrCipherTextRead      = errors.New("read chipher text error")
@@ -23,7 +23,7 @@ var (
 // Returns encrypted message
 func Encrypt(key []byte, message string) ([]byte, error) {
 	for len(message)%aes.BlockSize != 0 {
-		message = message + PADDING
+		message = message + padding
 	}
 
 	plaintext := []byte(message)
@@ -70,5 +70,5 @@ func Decrypt(key []byte, encryptedMessage []byte) (string, error) {
 	mode := cipher.NewCBCDecrypter(block, iv)
 	mode.CryptBlocks(encryptedMessage, encryptedMessage)
 
-	return strings.TrimRight(string(encryptedMessage), PADDING), nil
+	return strings.TrimRight(string(encryptedMessage), padding), nil
 }
