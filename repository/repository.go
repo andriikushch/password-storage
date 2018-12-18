@@ -125,6 +125,37 @@ func DeleteCredentials(key []byte, account string) error {
 	return nil
 }
 
+func ChangeMasterKey(oldKey, newKey []byte) error {
+	newDb := make(map[string][]byte)
+	accounts, err := GetAccountsList(oldKey)
+
+	if err != nil {
+		return err
+	}
+
+	for _, account := range accounts {
+		passwd, err := FindPassword(oldKey, account)
+
+		if err != nil {
+			return err
+		}
+
+		encryptedAccount, err := crypt.Encrypt(newKey, account)
+		if err != nil {
+			return err
+		}
+		encryptedPassword, err := crypt.Encrypt(newKey, passwd)
+		if err != nil {
+			return err
+		}
+		newDb[base64.StdEncoding.EncodeToString(encryptedAccount)] = encryptedPassword
+	}
+
+	db = newDb
+
+	return writeToFile()
+}
+
 func storeAccountPasswordPair(key []byte, account string, password string) error {
 	err := loadDB()
 
