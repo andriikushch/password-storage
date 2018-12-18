@@ -206,7 +206,6 @@ func writeToFile() error {
 	}
 
 	defer encodeFile.Close()
-	// Since this is a binary format large parts of it will be unreadable
 	encoder := gob.NewEncoder(encodeFile)
 	// Write to the file
 	if err := encoder.Encode(db); err != nil {
