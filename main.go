@@ -26,7 +26,7 @@ func main() {
 	flag.BoolVar(&ac, "ac", false, "add new username:password")
 	flag.BoolVar(&g, "g", false, "copy to clip board password for account")
 	flag.BoolVar(&d, "d", false, "delete password for account")
-	flag.BoolVar(&d, "v", false, "version")
+	flag.BoolVar(&v, "v", false, "version")
 
 	flag.Parse()
 
