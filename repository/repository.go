@@ -32,7 +32,10 @@ type Repository interface {
 	DeleteCredentials(key []byte, account string) error
 }
 
-func FindPassword(key []byte, account string) (string, error) {
+type PasswordRepository struct{}
+
+// Load encrypted password
+func (p *PasswordRepository) FindPassword(key []byte, account string) (string, error) {
 	// Open a RO file
 	decodeFile, err := os.Open(databaseFile)
 	if err != nil {
@@ -65,8 +68,9 @@ func FindPassword(key []byte, account string) (string, error) {
 	return "", ErrPasswordNotFound
 }
 
-func GetAccountsList(key []byte) ([]string, error) {
-	if err := loadDB(); err != nil {
+// Returns array of accounts
+func (p *PasswordRepository) GetAccountsList(key []byte) ([]string, error) {
+	if err := p.loadDB(); err != nil {
 		return nil, err
 	}
 
@@ -87,19 +91,21 @@ func GetAccountsList(key []byte) ([]string, error) {
 	return result, nil
 }
 
-func AddNewCredentials(key, bytePassword, bytePasswordConfirmation []byte, account string) error {
+// Add store new credentials
+func (p *PasswordRepository) AddNewCredentials(key, bytePassword, bytePasswordConfirmation []byte, account string) error {
 	password := string(bytePassword)
 	passwordConfirmation := string(bytePasswordConfirmation)
 
 	if password == passwordConfirmation {
-		return storeAccountPasswordPair(key, account, password)
+		return p.storeAccountPasswordPair(key, account, password)
 	}
 
 	return ErrPasswordAndPasswordConfirmationMatching
 }
 
-func DeleteCredentials(key []byte, account string) error {
-	if err := loadDB(); err != nil {
+// Remove credential
+func (p *PasswordRepository) DeleteCredentials(key []byte, account string) error {
+	if err := p.loadDB(); err != nil {
 		return err
 	}
 
@@ -117,7 +123,7 @@ func DeleteCredentials(key []byte, account string) error {
 
 		if account == decryptedAccount {
 			delete(db, acc)
-			if err := writeToFile(); err != nil {
+			if err := p.writeToFile(); err != nil {
 				return err
 			}
 		}
@@ -126,16 +132,17 @@ func DeleteCredentials(key []byte, account string) error {
 	return nil
 }
 
-func ChangeMasterKey(oldKey, newKey []byte) error {
+// Re-encrypt all credentials with new master password
+func (p *PasswordRepository) ChangeMasterKey(oldKey, newKey []byte) error {
 	newDb := make(map[string][]byte)
-	accounts, err := GetAccountsList(oldKey)
+	accounts, err := p.GetAccountsList(oldKey)
 
 	if err != nil {
 		return err
 	}
 
 	for _, account := range accounts {
-		passwd, err := FindPassword(oldKey, account)
+		passwd, err := p.FindPassword(oldKey, account)
 
 		if err != nil {
 			return err
@@ -154,11 +161,11 @@ func ChangeMasterKey(oldKey, newKey []byte) error {
 
 	db = newDb
 
-	return writeToFile()
+	return p.writeToFile()
 }
 
-func storeAccountPasswordPair(key []byte, account string, password string) error {
-	err := loadDB()
+func (p *PasswordRepository) storeAccountPasswordPair(key []byte, account string, password string) error {
+	err := p.loadDB()
 
 	if err != nil {
 		return err
@@ -193,10 +200,10 @@ func storeAccountPasswordPair(key []byte, account string, password string) error
 	}
 	db[base64.StdEncoding.EncodeToString(encryptedAccount)] = encryptedPassword
 
-	return writeToFile()
+	return p.writeToFile()
 }
 
-func writeToFile() error {
+func (p *PasswordRepository) writeToFile() error {
 	encodeFile := new(os.File)
 
 	//recreate DB file
@@ -217,7 +224,7 @@ func writeToFile() error {
 	return nil
 }
 
-func loadDB() error {
+func (p *PasswordRepository) loadDB() error {
 	var decodeFile *os.File
 	var err error
 	if _, err := os.Stat(databaseFile); os.IsNotExist(err) {

@@ -15,7 +15,8 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-var version = "0.0.2"
+var version = "0.0.3"
+var r = &repository.PasswordRepository{}
 
 func main() {
 	var l, ac, a, g, d, v bool
@@ -65,14 +66,14 @@ func deleteAccountMenuItem(key []byte) {
 	printAccountsList(key)
 	fmt.Println("Select account to delete (number): ")
 	fmt.Scanln(&accountToDelete)
-	repository.DeleteCredentials(key, generateAccountList(key[:])[accountToDelete])
+	r.DeleteCredentials(key, generateAccountList(key[:])[accountToDelete])
 }
 
 func getPasswordForAccountMenuItem(key []byte) {
 	var account string
 	fmt.Print("Enter account name: ")
 	fmt.Scanln(&account)
-	password, err := repository.FindPassword(key, account)
+	password, err := r.FindPassword(key, account)
 	if err != nil {
 		fmt.Printf("%v", err)
 	} else {
@@ -86,7 +87,7 @@ func addAccountWithRandomPasswordMenuItem(key []byte) {
 	fmt.Scanln(&account)
 
 	password := randChar(16)
-	if err := repository.AddNewCredentials(key[:], []byte(password), []byte(password), account); err != nil {
+	if err := r.AddNewCredentials(key[:], []byte(password), []byte(password), account); err != nil {
 		fmt.Printf("%v", err)
 	}
 	fmt.Println("")
@@ -106,7 +107,7 @@ func addCredentialsMenuItem(key []byte) {
 	if err != nil {
 		fmt.Println("Can't read password confirmation")
 	}
-	if err := repository.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account); err != nil {
+	if err := r.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account); err != nil {
 		fmt.Printf("%v", err)
 	}
 	fmt.Println("")
@@ -120,7 +121,7 @@ func printAccountsList(key []byte) {
 }
 
 func generateAccountList(key []byte) []string {
-	list, err := repository.GetAccountsList(key)
+	list, err := r.GetAccountsList(key)
 
 	if err != nil {
 		panic("Some error" + err.Error())

@@ -31,8 +31,10 @@ func TestAddNewCredentials(t *testing.T) {
 	databaseFile = "/tmp/db2_test"
 	defer os.Remove(databaseFile)
 
+	repository := &PasswordRepository{}
+
 	for i := range passwords {
-		if err := AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
+		if err := repository.AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
 			fmt.Println("AddNewCredentials 1")
 			fmt.Println(err.Error())
 			t.FailNow()
@@ -41,14 +43,14 @@ func TestAddNewCredentials(t *testing.T) {
 
 	//to found bug with duplication in map
 	for i := range passwords {
-		if err := AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
+		if err := repository.AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
 			fmt.Println("AddNewCredentials 2")
 			fmt.Println(err.Error())
 			t.FailNow()
 		}
 	}
 
-	list, err := GetAccountsList(key)
+	list, err := repository.GetAccountsList(key)
 
 	if err != nil {
 		fmt.Println("GetAccountsList")
@@ -74,7 +76,7 @@ func TestAddNewCredentials(t *testing.T) {
 		t.FailNow()
 	}
 
-	password, err := FindPassword(key, a1)
+	password, err := repository.FindPassword(key, a1)
 
 	if err != nil {
 		fmt.Print(err.Error())
@@ -86,12 +88,12 @@ func TestAddNewCredentials(t *testing.T) {
 		t.FailNow()
 	}
 
-	if err := DeleteCredentials(key, a1); err != nil {
+	if err := repository.DeleteCredentials(key, a1); err != nil {
 		fmt.Printf("%v", err)
 		t.FailNow()
 	}
 
-	_, err = FindPassword(key, a1)
+	_, err = repository.FindPassword(key, a1)
 
 	if err.Error() != ErrPasswordNotFound.Error() {
 		fmt.Printf("%v", err)
@@ -123,8 +125,10 @@ func TestChangeMasterKey(t *testing.T) {
 	databaseFile = "/tmp/db2_test"
 	defer os.Remove(databaseFile)
 
+	repository := &PasswordRepository{}
+
 	for i := range passwords {
-		if err := AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
+		if err := repository.AddNewCredentials(key, []byte(passwords[i]), []byte(passwords[i]), accounts[i]); err != nil {
 			fmt.Println("AddNewCredentials 1")
 			fmt.Println(err.Error())
 			t.FailNow()
@@ -136,14 +140,14 @@ func TestChangeMasterKey(t *testing.T) {
 	newTmpKey := sha256.Sum256([]byte(newMasterPassword))
 	newKey := newTmpKey[:]
 
-	err := ChangeMasterKey(key, newKey)
+	err := repository.ChangeMasterKey(key, newKey)
 	if err != nil {
 		fmt.Println("ChangeMasterKey")
 		fmt.Println(err.Error())
 		t.FailNow()
 	}
 
-	list, err := GetAccountsList(newKey)
+	list, err := repository.GetAccountsList(newKey)
 
 	// assertions
 	if err != nil {
@@ -170,7 +174,7 @@ func TestChangeMasterKey(t *testing.T) {
 		t.FailNow()
 	}
 
-	password, err := FindPassword(newKey, a1)
+	password, err := repository.FindPassword(newKey, a1)
 
 	if err != nil {
 		fmt.Print(err.Error())
