@@ -98,7 +98,7 @@ func addCredentialsMenuItem(key []byte) {
 	fmt.Print("\nEnter password confirmation: ")
 	bytePasswordConfirmation, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
-		fmt.Println("Can't read password confiramtion")
+		fmt.Println("Can't read password confirmation")
 	}
 	if err := repository.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account); err != nil {
 		fmt.Printf("%v", err)
