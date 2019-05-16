@@ -28,9 +28,10 @@ go install github.com/andriikushch/password-storage
 
 ```
 go run main.go -h
-  -g	add new account with random password
-  -ac   add new username:password
-  -d	delete password for account
-  -g	copy to clip board password for account
-  -l	list of stored accounts
+    -a	add new account with random password
+    -ac	add new username:password
+    -d	delete password for account
+    -g	copy to clip board password for account
+    -l	list of stored accounts
+    -v	version
 ```
