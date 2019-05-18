@@ -49,8 +49,9 @@ func (p *PasswordRepository) FindPassword(key []byte, account string) (string, e
 		return "", ErrOpenDatabase
 	}
 	defer func() {
-		err := decodeFile.Close()
-		log.Println(err.Error())
+		if err := decodeFile.Close(); err != nil {
+			log.Println(err.Error())
+		}
 	}()
 
 	decoder := gob.NewDecoder(decodeFile)
@@ -223,8 +224,9 @@ func (p *PasswordRepository) writeToFile() error {
 	}
 
 	defer func() {
-		err := encodeFile.Close()
-		log.Println(err.Error())
+		if err := encodeFile.Close(); err != nil {
+			log.Println(err.Error())
+		}
 	}()
 
 	encoder := gob.NewEncoder(encodeFile)
@@ -253,8 +255,9 @@ func (p *PasswordRepository) loadDB() error {
 	}
 
 	defer func() {
-		err := decodeFile.Close()
-		log.Println(err.Error())
+		if err := decodeFile.Close(); err != nil {
+			log.Println(err.Error())
+		}
 	}()
 
 	// Create a decoder
