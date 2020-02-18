@@ -16,12 +16,12 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-const version = "0.0.4"
+const version = "0.0.5"
 
 var r = repository.NewPasswordRepository(userHomeDir() + "/.dat2")
 
 func main() {
-	var l, ac, a, g, d, v bool
+	var l, ac, a, g, d, v, i bool
 
 	flag.BoolVar(&l, "l", false, "list of stored accounts")
 	flag.BoolVar(&a, "a", false, "add new account with random password")
@@ -29,6 +29,7 @@ func main() {
 	flag.BoolVar(&g, "g", false, "copy to clip board password for account")
 	flag.BoolVar(&d, "d", false, "delete password for account")
 	flag.BoolVar(&v, "v", false, "version")
+	flag.BoolVar(&i, "i", false, "interactive mode")
 
 	flag.Parse()
 
@@ -38,25 +39,53 @@ func main() {
 	}
 
 	fmt.Print("Enter master password: ")
-	masterPassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	masterPassword, err := terminal.ReadPassword(syscall.Stdin)
+	tmpKey := sha256.Sum256(masterPassword)
+	key := tmpKey[:]
 
 	if err != nil {
 		panic("Can't read password input")
 	}
 	fmt.Println("")
-	tmpKey := sha256.Sum256(masterPassword)
-	key := tmpKey[:]
-	switch true {
-	case a:
-		addAccountWithRandomPasswordMenuItem(key)
-	case ac:
-		addCredentialsMenuItem(key)
-	case g:
-		getPasswordForAccountMenuItem(key)
-	case l:
-		printAccountMenuItem(key)
-	case d:
-		deleteAccountMenuItem(key)
+	if !i {
+		switch true {
+		case a:
+			addAccountWithRandomPasswordMenuItem(key)
+		case ac:
+			addCredentialsMenuItem(key)
+		case g:
+			getPasswordForAccountMenuItem(key)
+		case l:
+			printAccountMenuItem(key)
+		case d:
+			deleteAccountMenuItem(key)
+		}
+	} else {
+		var quit bool
+		for !quit {
+			fmt.Println("Print command: ")
+			var command string
+			_, err := fmt.Scanln(&command)
+
+			if err != nil {
+				panic("Can't read command input")
+			}
+
+			switch command {
+			case "a":
+				addAccountWithRandomPasswordMenuItem(key)
+			case "ac":
+				addCredentialsMenuItem(key)
+			case "g":
+				getPasswordForAccountMenuItem(key)
+			case "l":
+				printAccountMenuItem(key)
+			case "d":
+				deleteAccountMenuItem(key)
+			case "q":
+				quit = true
+			}
+		}
 	}
 }
 func printAccountMenuItem(key []byte) {
