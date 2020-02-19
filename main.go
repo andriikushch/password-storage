@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"syscall"
 
@@ -16,7 +17,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-const version = "0.0.5"
+const version = "0.0.6"
 
 var r = repository.NewPasswordRepository(userHomeDir() + "/.dat2")
 
@@ -48,24 +49,30 @@ func main() {
 	}
 	fmt.Println("")
 	if !i {
+		var err error
 		switch true {
 		case a:
-			addAccountWithRandomPasswordMenuItem(key)
+			err = addAccountWithRandomPasswordMenuItem(key)
 		case ac:
-			addCredentialsMenuItem(key)
+			err = addCredentialsMenuItem(key)
 		case g:
-			getPasswordForAccountMenuItem(key)
+			err = getPasswordForAccountMenuItem(key)
 		case l:
 			printAccountMenuItem(key)
 		case d:
-			deleteAccountMenuItem(key)
+			err = deleteAccountMenuItem(key)
+		}
+
+		if err != nil {
+			log.Fatalln(err)
 		}
 	} else {
 		var quit bool
 		for !quit {
+			var err error
 			fmt.Println("Print command: ")
 			var command string
-			_, err := fmt.Scanln(&command)
+			_, err = fmt.Scanln(&command)
 
 			if err != nil {
 				panic("Can't read command input")
@@ -73,17 +80,21 @@ func main() {
 
 			switch command {
 			case "a":
-				addAccountWithRandomPasswordMenuItem(key)
+				err = addAccountWithRandomPasswordMenuItem(key)
 			case "ac":
-				addCredentialsMenuItem(key)
+				err = addCredentialsMenuItem(key)
 			case "g":
-				getPasswordForAccountMenuItem(key)
+				err = getPasswordForAccountMenuItem(key)
 			case "l":
 				printAccountMenuItem(key)
 			case "d":
-				deleteAccountMenuItem(key)
+				err = deleteAccountMenuItem(key)
 			case "q":
 				quit = true
+			}
+
+			if err != nil {
+				log.Fatalln(err)
 			}
 		}
 	}
@@ -92,42 +103,51 @@ func printAccountMenuItem(key []byte) {
 	printAccountsList(key)
 }
 
-func deleteAccountMenuItem(key []byte) {
+func deleteAccountMenuItem(key []byte) error {
 	accountToDelete := -1
 	printAccountsList(key)
 	fmt.Println("Select account to delete (number): ")
-	fmt.Scanln(&accountToDelete)
-	r.DeleteCredentials(key, generateAccountList(key[:])[accountToDelete])
+	_, err := fmt.Scanln(&accountToDelete)
+	if err != nil {
+		return err
+	}
+	return r.DeleteCredentials(key, generateAccountList(key[:])[accountToDelete])
 }
 
-func getPasswordForAccountMenuItem(key []byte) {
+func getPasswordForAccountMenuItem(key []byte) error {
 	var account string
 	fmt.Print("Enter account name: ")
-	fmt.Scanln(&account)
+	_, err := fmt.Scanln(&account)
+	if err != nil {
+		return err
+	}
 	password, err := r.FindPassword(key, account)
 	if err != nil {
-		fmt.Printf("%v", err)
+		return err
 	} else {
-		clipboard.WriteAll(password)
+		return clipboard.WriteAll(password)
 	}
 }
 
-func addAccountWithRandomPasswordMenuItem(key []byte) {
+func addAccountWithRandomPasswordMenuItem(key []byte) error {
 	var account string
 	fmt.Print("Enter account name: ")
-	fmt.Scanln(&account)
+	_, err := fmt.Scanln(&account)
+	if err != nil {
+		return err
+	}
 
 	password := randChar(16)
-	if err := r.AddNewCredentials(key[:], []byte(password), []byte(password), account); err != nil {
-		fmt.Printf("%v", err)
-	}
-	fmt.Println("")
+	return r.AddNewCredentials(key[:], []byte(password), []byte(password), account)
 }
 
-func addCredentialsMenuItem(key []byte) {
+func addCredentialsMenuItem(key []byte) error {
 	var account string
 	fmt.Print("Enter account name: ")
-	fmt.Scanln(&account)
+	_, err := fmt.Scanln(&account)
+	if err != nil {
+		return err
+	}
 	fmt.Print("Enter password: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
@@ -137,11 +157,10 @@ func addCredentialsMenuItem(key []byte) {
 	bytePasswordConfirmation, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		fmt.Println("Can't read password confirmation")
+		return err
 	}
-	if err := r.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account); err != nil {
-		fmt.Printf("%v", err)
-	}
-	fmt.Println("")
+
+	return r.AddNewCredentials(key[:], bytePassword, bytePasswordConfirmation, account)
 }
 
 func printAccountsList(key []byte) {
