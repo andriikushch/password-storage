@@ -55,7 +55,10 @@ func (p *PasswordRepository) FindPassword(key []byte, account string) (string, e
 	}()
 
 	decoder := gob.NewDecoder(decodeFile)
-	decoder.Decode(&p.db)
+	err = decoder.Decode(&p.db)
+	if err != nil {
+		return  "", err
+	}
 
 	for acc, password := range p.db {
 		encryptedAccount, err := base64.StdEncoding.DecodeString(acc)
@@ -242,7 +245,7 @@ func (p *PasswordRepository) writeToFile() error {
 func (p *PasswordRepository) loadDB() error {
 	var decodeFile *os.File
 	var err error
-	if _, err := os.Stat(p.dbFile); os.IsNotExist(err) {
+	if _, err = os.Stat(p.dbFile); os.IsNotExist(err) {
 		decodeFile, err = os.Create(p.dbFile)
 	} else {
 		// Open a RO file

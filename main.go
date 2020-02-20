@@ -202,7 +202,6 @@ func randChar(length int) string {
 			}
 		}
 	}
-	panic("unreachable")
 }
 
 func userHomeDir() string {

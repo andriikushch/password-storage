@@ -51,19 +51,16 @@ func Encrypt(key []byte, message string) ([]byte, error) {
 func Decrypt(key []byte, encryptedMessage []byte) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		log.Println(err.Error())
 		return "", ErrCipherCreation
 	}
 
 	if len(encryptedMessage) < aes.BlockSize {
-		log.Println(err.Error())
 		return "", ErrCipherTooShort
 	}
 	iv := encryptedMessage[:aes.BlockSize]
 	encryptedMessage = encryptedMessage[aes.BlockSize:]
 
 	if len(encryptedMessage)%aes.BlockSize != 0 {
-		log.Println(err.Error())
 		return "", ErrCipherTextWrongSize
 	}
 
