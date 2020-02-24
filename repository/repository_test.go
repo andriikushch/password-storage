@@ -29,7 +29,9 @@ func TestAddNewCredentials(t *testing.T) {
 	accounts := []string{a1, a2, a3, a4, a5, a6}
 
 	databaseFile := "/tmp/db2_test"
-	defer os.Remove(databaseFile)
+	defer func() {
+		_ = os.Remove(databaseFile)
+	}()
 
 	repository := NewPasswordRepository(databaseFile)
 
@@ -95,7 +97,7 @@ func TestAddNewCredentials(t *testing.T) {
 
 	_, err = repository.FindPassword(key, a1)
 
-	if err.Error() != ErrPasswordNotFound.Error() {
+	if err == nil || err.Error() != ErrPasswordNotFound.Error() {
 		fmt.Printf("%v", err)
 		t.FailNow()
 	}
@@ -123,7 +125,7 @@ func TestChangeMasterKey(t *testing.T) {
 	accounts := []string{a1, a2, a3, a4, a5, a6}
 
 	databaseFile := "/tmp/db2_test"
-	defer os.Remove(databaseFile)
+	defer func() {_ = os.Remove(databaseFile)}()
 
 	repository := NewPasswordRepository(databaseFile)
 
