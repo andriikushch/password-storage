@@ -13,10 +13,10 @@ import (
 const padding = "\x00"
 
 var (
-	ErrCipherTextRead      = errors.New("read chipher text error")
-	ErrCipherCreation      = errors.New("new chipher creation error")
-	ErrCipherTooShort      = errors.New("chipher too shortr")
-	ErrCipherTextWrongSize = errors.New("ciphertext is not a multiple of the block size")
+	ErrCipherTextRead      = errors.New("read cipher text error")
+	ErrCipherCreation      = errors.New("new cipher creation error")
+	ErrCipherTooShort      = errors.New("cipher too short")
+	ErrCipherTextWrongSize = errors.New("cipher text is not a multiple of the block size")
 )
 
 // Encrypt adding padding to plain message, ensuring that it is matching length required by AES.
