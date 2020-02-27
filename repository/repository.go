@@ -57,7 +57,7 @@ func (p *PasswordRepository) FindPassword(key []byte, account string) (string, e
 	decoder := gob.NewDecoder(decodeFile)
 	err = decoder.Decode(&p.db)
 	if err != nil {
-		return  "", err
+		return "", err
 	}
 
 	for acc, password := range p.db {

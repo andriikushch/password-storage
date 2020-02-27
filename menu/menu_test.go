@@ -1,12 +1,12 @@
-package main
+package menu
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func Test_randChar(t *testing.T) {
+	m := NewMenu(nil)
 	iterations := 20
 	length := []int{
 		1,
@@ -20,7 +20,7 @@ func Test_randChar(t *testing.T) {
 
 	for i := 0; i < iterations; i++ {
 		for _, v := range length {
-			rndString := randChar(v)
+			rndString := m.randChar(v)
 			assert.Len(t, rndString, v)
 		}
 	}

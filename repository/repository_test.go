@@ -125,7 +125,7 @@ func TestChangeMasterKey(t *testing.T) {
 	accounts := []string{a1, a2, a3, a4, a5, a6}
 
 	databaseFile := "/tmp/db2_test"
-	defer func() {_ = os.Remove(databaseFile)}()
+	defer func() { _ = os.Remove(databaseFile) }()
 
 	repository := NewPasswordRepository(databaseFile)
 
