@@ -7,17 +7,6 @@ Simple password storage implemented with AES encryption.
 
 Current implementation has only command line interface. As storage it uses a local file ```~/.dat2```. 
 
-## Install
-
-```
-wget https://github.com/andriikushch/password-storage/tree/master/bin/password-storage-x-x-x
-mv password-storage-x-x-x /usr/local/bin
-```
-or if you have local ```go``` installed
-```
-go install github.com/andriikushch/password-storage
-```
-
 ## Usage:
 
 ```
