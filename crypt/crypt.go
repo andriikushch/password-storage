@@ -51,6 +51,7 @@ func Encrypt(key []byte, message string) ([]byte, error) {
 func Decrypt(key []byte, encryptedMessage []byte) (string, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
+		//todo return error
 		return "", ErrCipherCreation
 	}
 

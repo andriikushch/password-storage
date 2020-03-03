@@ -4,8 +4,10 @@ import (
 	"crypto/sha256"
 	"flag"
 	"fmt"
+	hanlder "github.com/andriikushch/password-storage/handler"
 	"github.com/andriikushch/password-storage/menu"
 	"log"
+	"net/http"
 	"os"
 	"syscall"
 
@@ -16,7 +18,7 @@ import (
 const version = "0.0.6"
 
 func main() {
-	var l, ac, a, g, d, v, i bool
+	var l, ac, a, g, d, v, i, s bool
 
 	flag.BoolVar(&l, "l", false, "list of stored accounts")
 	flag.BoolVar(&a, "a", false, "add new account with random password")
@@ -25,6 +27,7 @@ func main() {
 	flag.BoolVar(&d, "d", false, "delete password for account")
 	flag.BoolVar(&v, "v", false, "version")
 	flag.BoolVar(&i, "i", false, "interactive mode")
+	flag.BoolVar(&s, "s", false, "start web server")
 
 	flag.Parse()
 
@@ -32,8 +35,16 @@ func main() {
 		fmt.Println(version)
 		return
 	}
+	r := repository.NewPasswordRepository(userHomeDir() + "/.dat2")
+	if s {
+		mux := hanlder.NewRouter(r)
+		err := http.ListenAndServe("localhost:9991", mux)
+		if err != nil {
+			panic(err)
+		}
+	}
 
-	m := menu.NewMenu(repository.NewPasswordRepository(userHomeDir() + "/.dat2"))
+	m := menu.NewMenu(r)
 
 	fmt.Print("Enter master password: ")
 	masterPassword, err := terminal.ReadPassword(syscall.Stdin)
@@ -44,6 +55,7 @@ func main() {
 		panic("Can't read password input")
 	}
 	fmt.Println("")
+
 	if !i {
 		var err error
 		switch true {
