@@ -1,3 +1,8 @@
+# ⚠️ Notice: This Repository is Archived and Not Maintained
+
+This repository is no longer actively maintained. It has been archived for historical purposes and is provided as-is, without any warranty or support.
+
+
 # password-storage
 
 [![Build Status](https://travis-ci.org/andriikushch/password-storage.svg?branch=master)](https://travis-ci.org/andriikushch/password-storage)
